@@ -38,7 +38,15 @@ following brace style:
   }
 
 which shall be referred to as 'inline braces' or simply 'braces' in this
-project. On the note of compactness, I believe it is also generally preferrable
+project. To further emphasize the idea of compactness, when a statement only
+has one line, it should be indented with no braces, like this:
+
+  if (cond)
+    /* Do something... */
+  else
+    /* Do something else... */
+
+On the note of compactness, I believe it is also generally preferrable
 to have no blank lines inside function bodies, and discrete "chunks" of
 logic should be separated by comments explaining your reasoning anyway.
 
