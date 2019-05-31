@@ -8,10 +8,23 @@
 #ifndef ALIAS_H
 #define ALIAS_H
 
-/* Rename the `__builtin_expect()`s. */
+/* Rename the `__builtin_expect()`s if available. */
 
+#ifndef unlikely
+#ifdef __GNUC__
 #define unlikely(x) __builtin_expect((x), 0)
+#else
+#define unlikely(x) /* Do nothing. */
+#endif /* __GNUC__ */
+#endif /* unlikely */
+
+#ifndef likely
+#ifdef __GNUC__
 #define likely(x)   __builtin_expect(!(x), 0)
+#else
+#define likely(x)   /* Do nothing. */
+#endif /* __GNUC__ */
+#endif /* likely */
 
 /* Make our own offsetof macro if necessary. */
 
