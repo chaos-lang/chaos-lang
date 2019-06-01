@@ -24,7 +24,8 @@ static enum tkn_kind tk_classify[256] = {
   ['<'] = TK_OPER
 };
 
-void unit_lex(struct unit *unit) {
+void
+unit_lex(struct unit *unit) {
   /* Set up a blank token run. */
   if (unit->tkn_run != NULL)
     tkn_run_free(unit->tkn_run);
@@ -72,7 +73,8 @@ void unit_lex(struct unit *unit) {
   }
 }
 
-void unit_lex_print(struct unit *unit) {
+void
+unit_lex_print(struct unit *unit) {
   struct tkn_run *tkn_run = unit->tkn_run;
   size_t i;
 
