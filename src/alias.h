@@ -2,7 +2,7 @@
    author: Simon Lovell Bart (microchips-n-dip)
    description: A small collection of macros I find useful for making code
                 neater.
-   date: 2018-05-31
+   date: 2019-05-31
    */
 
 #ifndef ALIAS_H
