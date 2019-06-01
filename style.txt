@@ -1,0 +1,78 @@
+Simon's style guide
+-------------------------------------------------------------------------------
+
+Intro.
+Code should be consistent, that's about it really.
+-------------------------------------------------------------------------------
+
+Function declarations.
+In headers, a function declaration can be one line, since headers should be
+compact and are generally more for telling the compiler that things exist than
+the programmer. A declaration in a header file may look like this:
+
+  extern int foo(int, int);
+
+On the other hand, whenever a function is being defined, I consider it best
+to emphasize the function's name since that's probably what people will be
+looking for, so function definitions, whether in headers or in source code,
+should look like this:
+
+  static inline int
+  foo(int a, int b) {
+    if (a < b)
+      return a + b;
+    return a - b;
+  }
+
+-------------------------------------------------------------------------------
+
+Braces.
+Code readability is important, and I believe that code is generally nicer to
+read when it is fairly compact vertically. To achieve this, I recommend the
+following brace style:
+
+  if (cond) {
+    /* Do something... */
+  } else {
+    /* Do something else... */
+  }
+
+which shall be referred to as 'inline braces' or simply 'braces' in this
+project. To further emphasize the idea of compactness, when a statement only
+has one line, it should be indented with no braces, like this:
+
+  if (cond)
+    /* Do something... */
+  else
+    /* Do something else... */
+
+On the note of compactness, I believe it is also generally preferrable
+to have no blank lines inside function bodies, and discrete "chunks" of
+logic should be separated by comments explaining your reasoning anyway.
+
+-------------------------------------------------------------------------------
+
+Comments.
+I believe that for compatibility and consistency reasons, comments should
+follow the older C style of block comments. That is to say, all comments,
+including single-line comments, should appear
+
+  /* like this. */
+
+and multiline comments should appear either
+
+  /* like this,
+     when you're just writing out text normally; */
+  /* or like this,
+     when
+       creating
+     lists
+       of things.
+     */
+
+It's just not very nice to see
+
+  // this
+  /* right next to this. */
+
+-------------------------------------------------------------------------------
