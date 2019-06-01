@@ -37,12 +37,14 @@ enum token_type {
   TOKEN_COMMA,
   TOKEN_COMMENT,
   TOKEN_SEMICOLON,
-  TOKEN_EOF
+  TOKEN_EOF,
+  LTKN_WHITESPACE      /* This isn't a real token per-se. */
 };
 
 /* Table of token type associations. */
 
-static const enum token_type token_assoc[] const {
+static const enum token_type
+token_assoc[256] const {
   ['_']         = TOKEN_NAME,
   ['A' ... 'Z'] = TOKEN_NAME,
   ['a' ... 'z'] = TOKEN_NAME,
@@ -62,7 +64,10 @@ static const enum token_type token_assoc[] const {
   ['/']         = TOKEN_DIV,
   [':']         = TOKEN_COLON,
   [',']         = TOKEN_COMMA,
-  [';']         = TOKEN_SEMICOLON
+  [';']         = TOKEN_SEMICOLON,
+  [' ']         = LTKN_WHITESPACE,
+  ['\t']        = LTKN_WHITESPACE,
+  ['\n']        = LTKN_WHITESPACE
 };
 
 typedef struct token token;
@@ -126,83 +131,118 @@ struct Unit {
   token *cur_token;
 };
 
+/* The possible states of the lexer. */
+
+enum lexer_state {
+  LS_SCAN,       /* Scan the next token and ascertain its type. */
+  LS_WHITESPACE, /* Skip over whitespace. */
+  LS_IDENT,      /* Lex over an identifier. */
+  LS_NUMBER,     /* Lex over a number. */
+  LS_STRING      /* Lex over a string. */
+};
+
 /* Lex an entire unit. */
 
 void
 lex_unit(Unit *unit) {
-  token *result;
-  char c;
+  enum lexer_state state = LS_SCAN;
   enum token_type type;
+  token *result;
+  unsigned int i;
+  /* Some macros for facilitating accessing characters. */
+  #define pc (unit->buf[i - 1])
+  #define c  (unit->buf[i])
+  #define nc (unit->buf[i + 1])
   while (1) {
-    result = unit->cur_token++;
-    /* If we've reached the limit of the current tokenrun, go to the next
-       one and reset our position. */
-    if (unit->cur_token == run->limit) {
-      unit->cur_run = next_tokenrun();
-      unit->cur_token = unit->cur_run->tokens;
-    }
-  _skipped_whitespace:
-    c = *unit->cur++;
-    result->type = type = token_assoc[c];
-    /* Handle newlines and whitespace. If this is a newline then set need_eol
-       to false and we can treat the rest as whitespace. */
-    if (c == '\n' && unit->need_eol) {
-      unit->need_eol = 0;
-      result->type = TOKEN_SEMICOLON;
-      continue;
-    } else if (c == ' ' || c == '\t' || c == '\n') {
-      while (c == ' ' || c == '\t' || c == '\n')
-        c = *unit->cur++;
-      goto _skipped_whitespace;
-    }
-    /* For now assume that any other tokens will need eol after them. */
-    unit->need_eol = 1;
-    switch (result->type) {
-      /* Get the full name and put it in a string, then check to see if it's a
-         keyword. */
-      case TOKEN_NAME: {
-        result->val.str.base = unit->cur - 1;
-        while (type == TOKEN_NAME || type == TOKEN_NUMBER) {
-          c = *unit->cur++;
-          type = token_assoc[c];
+    switch (state) {
+      /* Prepare a new token from the current run and if necessary get the
+         next run. Also check to see if we've reached the unit's rlimit
+         and if so, take appropriate action as that's EOF. */
+      /* TODO: Replace `rlimit` with `len`? */
+      case LS_SCAN: {
+        tokenrun *crbackup = unit->cur_run;
+        result = unit->cur_token++;
+        if (unlikely(unit->cur_token == unit->cur_run->limit)) {
+          unit->cur_run = next_tokenrun(unit->cur_run);
+          unit->cur_token = unit->cur_run->tokens;
         }
-        result->val.str.len = unit->cur - result->val.str.base;
-        lookup_node node = ht_lookup(keywords, result->val.str);
-        if (node) {
-          result->type = TOKEN_KEYWORD;
-          result->val.rid = node->code;
+        if (unlikely(unit->buf + i == unit->rlimit)) {
+          result->type = TOKEN_EOF;
+          goto _exit;
         }
+        result->type = type = token_assoc[c];
+        result->base_index = i;
+        switch (type) {
+          case LTKN_WHITESPACE:
+            state = LS_WHITESPACE;
+            /* Take care to back up `cur_token` otherwise we have empty
+               tokens. */
+            unit->cur_token = result;
+            unit->cur_run = crbackup;
+            break;
+          case TOKEN_NAME:
+            state = LS_IDENT;
+            result->val.str.base = unit->buf + i;
+            result->val.str.len = 0;
+            break;
+          case TOKEN_NUMBER: state = LS_NUMBER; break;
+          case TOKEN_STRING:
+            state = LS_STRING;
+            result->val.str.base = unit->buf + i;
+            result->val.str.len = 0;
+            break;
+        }
+        i++;
       } continue;
-      /* Read the numerical value of a number token.
-         TODO: Actually turn it into a numerical value. */
-      case TOKEN_NUMBER: {
-        result->val.str.base = unit->cur - 1;
-        while (type == TOKEN_NUMBER) {
-          c = *unit->cur++;
-          type = token_assoc[c];
-        }
-        result->val.str.len = unit->cur - result->val.str.base;
-      } continue;
-      /* Deal with ambiguity of '/'. */
-      case TOKEN_DIV: {
-        /* Skip over comments; pretend they're whitespace for now. */
-        if (*unit->cur == '/') { /* Line comment, skip to next newline. */
-          do {
-            c = *unit->cur++;
-          } while (c != '\n');
-          goto _skipped_whitespace;
-        }
-        /* Block comment. Look for the next '/' and check if the previous
-           character was '*'. */
-        else if (*unit->cur == '*') {
-          while (1) {
-            c = *unit->cur++;
-            if (c == '/' && unit->cur[-1] == '*')
-              break;
+      /* Lex over some whitespace. */
+      case LS_WHITESPACE:
+        type = token_assoc[c];
+        if (unit->need_eol && pc == '\n')
+          result->type = TOKEN_SEMICOLON;
+        else if (type != LTKN_WHITESPACE)
+          state = LS_SCAN;
+        else
+          i++;
+        continue;
+      /* Lex over an ident. */
+      case LS_IDENT: {
+        type = token_assoc[c];
+        /* If we encounter a token that isn't a valid ident token, we're done
+           lexing the ident, but we still need to run a lookup to see if it's
+           a keyword. */
+        if (type != TOKEN_NAME && type != TOKEN_NUMBER) {
+          lookup_node node = ht_lookup(keywords, result->val.str);
+          if (node) {
+            result->type = TOKEN_KEYWORD;
+            result->val.rid = node->code;
           }
-          goto _skipped_whitespace;
+          state = LS_SCAN;
+        } else {
+          result->val.str.len++;
+          i++;
         }
+      } continue;
+      /* Lex over a number. */
+      /* TODO: Actually lex the number. */
+      case LS_NUMBER: {
+        type = token_assoc[c];
+        if (type != TOKEN_NUMBER)
+          state = LS_SCAN;
+        else {
+          result->val.str.len++;
+          i++;
+        }
+      } continue;
+      /* Lex over a string. */
+      /* TODO: Implement this, I got lazy. */ 
+      case LS_STRING: {
+
       } continue;
     }
   }
+_exit:
+  /* We're done. */
+  #undef pc
+  #undef c
+  #undef nc
 }
