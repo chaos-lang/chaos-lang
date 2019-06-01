@@ -171,28 +171,22 @@ lex_unit(Unit *unit) {
         /* Figure out which state to transition to in order to lex the token
            properly. */
         result->type = type = token_assoc[c];
-        result->base_index = i;
+        result->base_index = i++;
         switch (type) {
           case LTKN_WHITESPACE: state = LS_WHITESPACE; continue;
           case TOKEN_NAME: state = LS_IDENT; break;
           case TOKEN_NUMBER: state = LS_NUMBER; break;
           case TOKEN_STRING: state = LS_STRING; break;
         }
-        /* Handle incrementing the current token and getting the next tokenrun
-           if necessary. */
-        unit->cur_token++;
-        if (unlikely(unit->cur_token == unit->cur_run->limit)) {
-          unit->cur_run = next_tokenrun(unit->cur_run);
-          unit->cur_token = unit->cur_run->tokens;
-        }
-        i++;
+        goto _next_token;
       } continue;
       /* Lex over some whitespace. */
       case LS_WHITESPACE:
         type = token_assoc[c];
-        if (unit->need_eol && pc == '\n')
+        if (unit->need_eol && pc == '\n') {
           result->type = TOKEN_SEMICOLON;
-        else if (type != LTKN_WHITESPACE)
+          goto _next_token;
+        } else if (type != LTKN_WHITESPACE)
           state = LS_SCAN;
         else
           i++;
@@ -232,6 +226,14 @@ lex_unit(Unit *unit) {
       case LS_STRING: {
 
       } continue;
+    }
+    /* Handle incrementing the current token and getting the next tokenrun
+       if necessary. */
+  _next_token:
+    unit->cur_token++;
+    if (unlikely(unit->cur_token == unit->cur_run->limit)) {
+      unit->cur_run = next_tokenrun(unit->cur_run);
+      unit->cur_token = unit->cur_run->tokens;
     }
   }
 _exit:
