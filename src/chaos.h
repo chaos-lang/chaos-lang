@@ -103,12 +103,9 @@ void unit_free(struct unit *unit);
 
 void unit_read(struct unit *unit, char *filename);
 
-/* tkn_run.c */
-
-struct tkn_run *tkn_run_push(struct tkn_run *tkn_run, struct tkn tkn);
-void tkn_run_free(struct tkn_run *tkn_run);
-
 /* lexer.c */
+
+void tkn_run_free(struct tkn_run *tkn_run);
 
 void unit_lex(struct unit *unit);
 void unit_lex_print(struct unit *unit);
