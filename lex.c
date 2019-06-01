@@ -74,6 +74,7 @@ typedef struct token token;
 
 struct token {
   enum token_type type;
+  unsigned int base_index;
   union {
     int integer;
     String str;
@@ -160,37 +161,29 @@ lex_unit(Unit *unit) {
          and if so, take appropriate action as that's EOF. */
       /* TODO: Replace `rlimit` with `len`? */
       case LS_SCAN: {
-        tokenrun *crbackup = unit->cur_run;
-        result = unit->cur_token++;
-        if (unlikely(unit->cur_token == unit->cur_run->limit)) {
-          unit->cur_run = next_tokenrun(unit->cur_run);
-          unit->cur_token = unit->cur_run->tokens;
-        }
+        result = unit->cur_token;
+        /* Handle possible EOF. */
         if (unlikely(unit->buf + i == unit->rlimit)) {
           result->type = TOKEN_EOF;
           goto _exit;
         }
+        memset(result, 0, sizeof(token));
+        /* Figure out which state to transition to in order to lex the token
+           properly. */
         result->type = type = token_assoc[c];
         result->base_index = i;
         switch (type) {
-          case LTKN_WHITESPACE:
-            state = LS_WHITESPACE;
-            /* Take care to back up `cur_token` otherwise we have empty
-               tokens. */
-            unit->cur_token = result;
-            unit->cur_run = crbackup;
-            break;
-          case TOKEN_NAME:
-            state = LS_IDENT;
-            result->val.str.base = unit->buf + i;
-            result->val.str.len = 0;
-            break;
+          case LTKN_WHITESPACE: state = LS_WHITESPACE; continue;
+          case TOKEN_NAME: state = LS_IDENT; break;
           case TOKEN_NUMBER: state = LS_NUMBER; break;
-          case TOKEN_STRING:
-            state = LS_STRING;
-            result->val.str.base = unit->buf + i;
-            result->val.str.len = 0;
-            break;
+          case TOKEN_STRING: state = LS_STRING; break;
+        }
+        /* Handle incrementing the current token and getting the next tokenrun
+           if necessary. */
+        unit->cur_token++;
+        if (unlikely(unit->cur_token == unit->cur_run->limit)) {
+          unit->cur_run = next_tokenrun(unit->cur_run);
+          unit->cur_token = unit->cur_run->tokens;
         }
         i++;
       } continue;
@@ -211,6 +204,7 @@ lex_unit(Unit *unit) {
            lexing the ident, but we still need to run a lookup to see if it's
            a keyword. */
         if (type != TOKEN_NAME && type != TOKEN_NUMBER) {
+          result->val.str.base = unit->buf + result->base_index;
           lookup_node node = ht_lookup(keywords, result->val.str);
           if (node) {
             result->type = TOKEN_KEYWORD;
@@ -234,7 +228,7 @@ lex_unit(Unit *unit) {
         }
       } continue;
       /* Lex over a string. */
-      /* TODO: Implement this, I got lazy. */ 
+      /* TODO: Implement this, I got lazy. */
       case LS_STRING: {
 
       } continue;
