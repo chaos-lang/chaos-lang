@@ -3,7 +3,7 @@
 #include "lex.h"
 
 int main(void) {
-  const char str[] = "what is up my dudes 42069";
+  const char str[] = "what is up my dudes -> 42069";
   /* Set up the unit. */
   Unit unit;
   unit.cur = unit.buf = str;

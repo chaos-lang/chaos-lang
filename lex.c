@@ -28,6 +28,8 @@ token_assoc[256] = {
   [']']         = TOKEN_CLOSE_BRACKET,
   ['{']         = TOKEN_OPEN_BRACE,
   ['}']         = TOKEN_CLOSE_BRACE,
+  ['<']         = TOKEN_LANGLE,
+  ['>']         = TOKEN_RANGLE,
   ['=']         = TOKEN_EQUALS,
   ['+']         = TOKEN_PLUS,
   ['-']         = TOKEN_MINUS,
@@ -61,27 +63,17 @@ next_tokenrun(tokenrun *run) {
   return run->next;
 }
 
-/* Destroy a file reader unit. */
-
-void
-destroy_unit(Unit *unit) {
-  /* Just remove the tokenruns for now. */
-  tokenrun *run;
-  while (unit->cur_run->prev) {
-    run = unit->cur_run;
-    unit->cur_run = run->prev;
-    XDELETE(run);
-  }
-}
-
 /* The possible states of the lexer. */
 
 enum lexer_state {
-  LS_SCAN,       /* Scan the next token and ascertain its type. */
-  LS_WHITESPACE, /* Skip over whitespace. */
-  LS_IDENT,      /* Lex over an identifier. */
-  LS_NUMBER,     /* Lex over a number. */
-  LS_STRING      /* Lex over a string. */
+  LS_SCAN,            /* Scan the next token and ascertain its type. */
+  LS_WHITESPACE,      /* Skip over whitespace. */
+  LS_IDENT,           /* Lex over an identifier. */
+  LS_NUMBER,          /* Lex over a number. */
+  LS_STRING,          /* Lex over a string. */
+  LS_DASH_DISAMBIG,   /* Dash disambiguation. */
+  LS_LANGLE_DISAMBIG, /* L-angle disambiguation. */
+  LS_WHOT             /* Seriously, whot? */
 };
 
 /* Lex an entire unit. */
@@ -119,6 +111,8 @@ lex_unit(Unit *unit) {
           case TOKEN_NAME: state = LS_IDENT; break;
           case TOKEN_NUMBER: state = LS_NUMBER; break;
           case TOKEN_STRING: state = LS_STRING; break;
+          case TOKEN_MINUS: state = LS_DASH_DISAMBIG; break;
+          case TOKEN_LANGLE: state = LS_LANGLE_DISAMBIG; break;
         }
         goto _next_token;
       } continue;
@@ -173,6 +167,22 @@ lex_unit(Unit *unit) {
           result->val.str.len++;
         i++;
       } continue;
+      /* Dash disambiguation. */
+      case LS_DASH_DISAMBIG: {
+        if (c == '>') {
+          result->type = TOKEN_RARROW;
+          i++;
+        }
+        state = LS_SCAN;
+      } continue;
+      /* L-angle disambiguation. */
+      case LS_LANGLE_DISAMBIG: {
+        if (c == '-') {
+          result->type = TOKEN_LARROW;
+          i++;
+        }
+        state = LS_SCAN;
+      } continue;
       /* Return to scan state. */
       default: {
         state = LS_SCAN;
@@ -193,4 +203,17 @@ _exit:
   #undef pc
   #undef c
   #undef nc
+}
+
+/* Destroy a file reader unit. */
+
+void
+destroy_unit(Unit *unit) {
+  /* Just remove the tokenruns for now. */
+  tokenrun *run;
+  while (unit->cur_run->prev) {
+    run = unit->cur_run;
+    unit->cur_run = run->prev;
+    XDELETE(run);
+  }
 }
