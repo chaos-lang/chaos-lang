@@ -92,5 +92,6 @@ struct Unit {
 };
 
 extern void lex_unit(Unit *);
+extern void destroy_unit(Unit *);
 
 #endif

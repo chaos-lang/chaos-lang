@@ -61,6 +61,19 @@ next_tokenrun(tokenrun *run) {
   return run->next;
 }
 
+/* Destroy a file reader unit. */
+
+void
+destroy_unit(Unit *unit) {
+  /* Just remove the tokenruns for now. */
+  tokenrun *run;
+  while (unit->cur_run->prev) {
+    run = unit->cur_run;
+    unit->cur_run = run->prev;
+    XDELETE(run);
+  }
+}
+
 /* The possible states of the lexer. */
 
 enum lexer_state {

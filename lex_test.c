@@ -9,6 +9,7 @@ int main(void) {
   unit.cur = unit.buf = str;
   unit.rlimit = str + sizeof(str);
   _init_tokenrun(&unit.base_run);
+  unit.base_run.prev = NULL;
   unit.cur_run = &unit.base_run;
   unit.cur_token = unit.base_run.tokens;
   /* Lex the unit. */
@@ -19,4 +20,5 @@ int main(void) {
     printf("%d\n", tok->type);
     tok++;
   }
+  destroy_unit(&unit);
 }
