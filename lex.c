@@ -181,7 +181,7 @@ lex_unit(Unit *unit) {
         goto _next_token;
       } continue;
       /* Lex over some whitespace. */
-      case LS_WHITESPACE:
+      case LS_WHITESPACE: {
         type = token_assoc[c];
         if (unit->need_eol && pc == '\n') {
           result->type = TOKEN_SEMICOLON;
@@ -190,14 +190,14 @@ lex_unit(Unit *unit) {
           state = LS_SCAN;
         else
           i++;
-        continue;
+      } continue;
       /* Lex over an ident. */
       case LS_IDENT: {
         type = token_assoc[c];
         /* If we encounter a token that isn't a valid ident token, we're done
            lexing the ident, but we still need to run a lookup to see if it's
            a keyword. */
-        if (type != TOKEN_NAME && type != TOKEN_NUMBER) {
+        if (unlikely(type != TOKEN_NAME && type != TOKEN_NUMBER)) {
           result->val.str.base = unit->buf + result->base_index;
           lookup_node node = ht_lookup(keywords, result->val.str);
           if (node) {
