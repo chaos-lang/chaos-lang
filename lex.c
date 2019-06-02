@@ -10,41 +10,12 @@
 #include <string.h>
 
 #include "alias.h"
-
-/* Tokens. */
-
-/* Token type enumeration. */
-
-enum token_type {
-  TOKEN_OTHER,         /* An unknown character. */
-  TOKEN_NAME,          /* Name/identifier token. */
-  TOKEN_KEYWORD,       /* Keyword/reserved word token. */
-  TOKEN_NUMBER,        /* A number token. */
-  TOKEN_STRING,        /* A string literal token. */
-  TOKEN_CHAR,
-  TOKEN_OPEN_PAREN,
-  TOKEN_CLOSE_PAREN,
-  TOKEN_OPEN_BRACKET,
-  TOKEN_CLOSE_BRACKET,
-  TOKEN_OPEN_BRACE,
-  TOKEN_CLOSE_BRACE,
-  TOKEN_EQUALS,
-  TOKEN_PLUS,
-  TOKEN_MINUS,
-  TOKEN_MULT,
-  TOKEN_DIV,
-  TOKEN_COLON,
-  TOKEN_COMMA,
-  TOKEN_COMMENT,
-  TOKEN_SEMICOLON,
-  TOKEN_EOF,
-  LTKN_WHITESPACE      /* This isn't a real token per-se. */
-};
+#include "lex.h"
 
 /* Table of token type associations. */
 
 static const enum token_type
-token_assoc[256] const {
+token_assoc[256] = {
   ['_']         = TOKEN_NAME,
   ['A' ... 'Z'] = TOKEN_NAME,
   ['a' ... 'z'] = TOKEN_NAME,
@@ -70,67 +41,25 @@ token_assoc[256] const {
   ['\n']        = LTKN_WHITESPACE
 };
 
-typedef struct token token;
+/* Initialize a tokenrun. */
 
-struct token {
-  enum token_type type;
-  unsigned int base_index;
-  union {
-    int integer;
-    String str;
-    enum rid_code rid;
-  } val;
-};
-
-/* Tokenruns. */
-
-/* Tokenruns are sized statically rather than dynamically so that, at the cost
-   of being able to change their size, we can allocate them in one go rather
-   than two. */
-
-#define TOKENRUN_SIZE 256
-
-typedef struct tokenrun tokenrun
-
-struct tokenrun {
-  tokenrun *prev, *next;
-  token tokens[TOKENRUN_SIZE];
-  token *limit;
-};
+void
+_init_tokenrun(tokenrun *run) {
+  run->next = NULL;
+  run->limit = run->tokens + TOKENRUN_SIZE;
+}
 
 /* Return the next tokenrun, and allocate it if necessary. */
 
 tokenrun *
 next_tokenrun(tokenrun *run) {
-  tokenrun *next = run->next;
-  if (next == NULL) {
-    next = XNEW(tokenrun);
-    next->prev = run;
-    next->next = NULL;
-    next->limit = next->tokens + TOKENRUN_SIZE;
+  if (run->next == NULL) {
+    run->next = XNEW(tokenrun);
+    run->next->prev = run;
+    _init_tokenrun(run->next);
   }
-  return next;
+  return run->next;
 }
-
-/* A lexer unit; handles a single file. */
-
-typedef struct Unit Unit;
-
-struct Unit {
-  /* Current position in the buffer. */
-  const char *cur;
-  /* The buffer itself. */
-  const char *buf;
-  /* The buffer limit, used for detecting EOF. */
-  const char *rlimit;
-  /* Flag indicating whether to replace the next newline with an EOL. */
-  unsigned int need_eol : 1;
-  unit *prev;
-  /* Tokenruns (put in the outer reader struct?) */
-  tokenrun base_run;
-  tokenrun *cur_run;
-  token *cur_token;
-};
 
 /* The possible states of the lexer. */
 
@@ -199,11 +128,11 @@ lex_unit(Unit *unit) {
            a keyword. */
         if (unlikely(type != TOKEN_NAME && type != TOKEN_NUMBER)) {
           result->val.str.base = unit->buf + result->base_index;
-          lookup_node node = ht_lookup(keywords, result->val.str);
+          /*lookup_node node = ht_lookup(keywords, result->val.str);
           if (node) {
             result->type = TOKEN_KEYWORD;
             result->val.rid = node->code;
-          }
+          }*/
           state = LS_SCAN;
         } else {
           result->val.str.len++;
@@ -211,20 +140,29 @@ lex_unit(Unit *unit) {
         }
       } continue;
       /* Lex over a number. */
-      /* TODO: Actually lex the number. */
+      /* TODO: Actually lex the number maybe? */
       case LS_NUMBER: {
         type = token_assoc[c];
-        if (type != TOKEN_NUMBER)
+        if (type != TOKEN_NUMBER) {
+          result->val.str.base = unit->buf + result->base_index;
           state = LS_SCAN;
-        else {
+        } else {
           result->val.str.len++;
           i++;
         }
       } continue;
       /* Lex over a string. */
-      /* TODO: Implement this, I got lazy. */
       case LS_STRING: {
-
+        if (c == '"' && pc != '\\') {
+          result->val.str.base = unit->buf + result->base_index + 1;
+          state = LS_SCAN;
+        } else
+          result->val.str.len++;
+        i++;
+      } continue;
+      /* Return to scan state. */
+      default: {
+        state = LS_SCAN;
       } continue;
     }
     /* Handle incrementing the current token and getting the next tokenrun
@@ -236,8 +174,9 @@ lex_unit(Unit *unit) {
       unit->cur_token = unit->cur_run->tokens;
     }
   }
-_exit:
   /* We're done. */
+_exit:
+  do {} while (0);
   #undef pc
   #undef c
   #undef nc
