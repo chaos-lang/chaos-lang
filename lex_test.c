@@ -9,6 +9,8 @@ token_name[] = {
   [TOKEN_OTHER]     = "token_other",
   [TOKEN_NAME]      = "token_name",
   [TOKEN_NUMBER]    = "token_number",
+  [TOKEN_RANGLE]    = "token_gt",
+  [TOKEN_RARROW]    = "token_rarrow",
   [TOKEN_PLUS]      = "token_plus",
   [TOKEN_MINUS]     = "token_minus",
   [TOKEN_SEMICOLON] = "token_eol",
@@ -17,7 +19,7 @@ token_name[] = {
 
 int main(void) {
   const char str[] =
-    "abc+Defg-234\n\
+    "abc+Defg->234\n\
     abc+Defg-234\n\
     abc+Defg-234\n\
     abc+Defg-234\n\

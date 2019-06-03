@@ -130,8 +130,8 @@ lex_unit(Unit *unit) {
         /* Figure out which state to transition to in order to lex the token
            properly. */
         result->type = type = token_assoc[c];
-        result->base_index = i;
-        result->val.str.len = 0;
+        result->slice_start = i;
+        result->slice_end = i;
         if (type == LTKN_WHITESPACE || type == LTKN_NEWLINE)
           goto _next_state;
         unit->need_eol = 1;
@@ -145,9 +145,8 @@ lex_unit(Unit *unit) {
         }
       } goto _next_state;
       /* Lex over some whitespace. */
-      case LS_WHITESPACE: {
-        type = token_assoc[c];
-      } goto _next_state;
+      case LS_WHITESPACE:
+        goto _next_state;
       /* Lex over an ident. */
       case LS_IDENT: {
         type = token_assoc[c];
@@ -155,36 +154,28 @@ lex_unit(Unit *unit) {
            lexing the ident, but we still need to run a lookup to see if it's
            a keyword. */
         if (unlikely(type != TOKEN_NAME && type != TOKEN_NUMBER)) {
-          result->val.str.base = unit->buf + result->base_index;
           /*lookup_node node = ht_lookup(keywords, result->val.str);
           if (node) {
             result->type = TOKEN_KEYWORD;
             result->val.rid = node->code;
           }*/
-        } else
-          result->val.str.len++;
+        }
       } goto _next_state;
       /* Lex over a number. */
       /* TODO: Actually lex the number maybe? */
       case LS_NUMBER: {
-        type = token_assoc[c];
-        if (type != TOKEN_NUMBER)
-          result->val.str.base = unit->buf + result->base_index;
-        else
-          result->val.str.len++;
+        /* Do nothing for now... */
       } goto _next_state;
       /* Lex over a string. */
       case LS_STRING: {
-        if (c == '"' && pc != '\\')
-          result->val.str.base = unit->buf + result->base_index + 1;
-        else
-          result->val.str.len++;
-        i++;
+        /* Do nothing for now... */
       } goto _next_state;
       /* Dash disambiguation. */
       case LS_DASH_DISAMBIG: {
-        if (c == '>')
+        if (c == '>') {
           result->type = TOKEN_RARROW;
+          i++;
+        }
       } goto _next_state;
       /* L-angle disambiguation. */
       case LS_LANGLE_DISAMBIG: {
@@ -208,13 +199,13 @@ lex_unit(Unit *unit) {
     }
     /* Handle transitioning to the next state. */
   _next_state:
-    asm volatile ("# _next_state start");
     type = token_assoc[c];
     next_state = transition[state][type];
-    if (state == next_state || next_state != LS_SCAN)
+    if (state == next_state || next_state != LS_SCAN) {
       i++; /* Increment unless returning to scan for reclassification. */
+      result->slice_end++;
+    }
     state = next_state;
-    asm volatile ("# _next_state end");
   }
   /* We're done. */
 _exit:

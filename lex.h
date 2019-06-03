@@ -50,7 +50,8 @@ typedef struct token token;
 
 struct token {
   enum token_type type;
-  unsigned int base_index;
+  unsigned int slice_start;
+  unsigned int slice_end;
   union {
     int integer;
     String str;
