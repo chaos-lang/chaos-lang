@@ -41,7 +41,9 @@ enum token_type {
   TOKEN_COMMENT,
   TOKEN_SEMICOLON,
   TOKEN_EOF,
-  LTKN_WHITESPACE      /* This isn't a real token per-se. */
+  LTKN_WHITESPACE,     /* This isn't a real token per-se. */
+  LTKN_NEWLINE,
+  TOKEN_LENGTH
 };
 
 typedef struct token token;
