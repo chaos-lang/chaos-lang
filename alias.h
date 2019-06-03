@@ -47,5 +47,19 @@
 #define XRESIZEVEC(T, P, N) (T *) realloc((void *) (P), sizeof(T) * (N))
 #define XDELETEVEC(P)       free((void *) (P))
 
+/* Some macros that will be useful for timing code. */
+
+#define timing_start(tp0)                 \
+  do {                                    \
+    clock_gettime(CLOCK_MONOTONIC, &tp0); \
+  } while (0)
+
+#define timing_stop(str, tp0, tp1)        \
+  do {                                    \
+    clock_gettime(CLOCK_MONOTONIC, &tp1); \
+    printf("%s took %ld ticks\n", str,    \
+      tp1.tv_nsec - tp0.tv_nsec);         \
+  } while (0);
+
 #endif /* ALIAS_H */
 
