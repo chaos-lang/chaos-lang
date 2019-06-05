@@ -11,21 +11,41 @@
 
 /* Helper Functions */
 
-char tk_oper_classify[512] = {
-  ['-' + '>'] = TK_ARROW
+static char tk_oper_classify[768] = {
+  ['-' + '>'] = TK_ARROW,
+  ['=' + '>'] = TK_IMPURE,
+  ['.' + '.'] = TK_RANGE,
+  ['.' + '.' + '<'] = TK_RANGE_LT,
+  ['.' + '.' + '.'] = TK_VARARGS
 };
 
-char tk_oper_check[256] = {
-  ['-'] = TK_ARROW
+static char *tk_oper_string[TK_LENGTH] = {
+  [TK_ARROW]    = "->",
+  [TK_IMPURE]   = "=>",
+  [TK_RANGE]    = "..",
+  [TK_RANGE_LT] = "..<",
+  [TK_VARARGS]  = "..."
 };
 
 static inline struct tkn_run *
-tkn_run_push(struct tkn_run *tkn_run, struct tkn tkn) {
+tkn_run_push(struct unit *unit, struct tkn_run *tkn_run, struct tkn tkn) {
   assert(tkn_run != NULL);
   assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
 
-  tkn.kind = (tkn.kind == TK_OPER)
+  switch (tkn.kind) {
+    case TK_OPER: {
+      size_t hash = 0;
+      for (size_t i = tkn.slice.left; i <= tkn.slice.right; i++)
+        hash += unit->src[i];
+      enum tkn_kind kind = tk_oper_classify[hash];
+      tkn.kind = kind && unit_slice_cmp_str(unit, tkn.slice, tk_oper_string[kind]) ? kind : tkn.kind;
+    } break;
 
+    case TK_INT: {
+      tkn.val.uint = unit_slice_atoi(unit, tkn.slice);
+    } break;
+  }
+  
   if (unlikely(tkn_run->len == CHAOS_TKN_RUN_LEN)) {
     tkn_run->next = XCNEW(struct tkn_run);
     tkn_run = tkn_run->next;
@@ -51,7 +71,7 @@ tkn_run_free(struct tkn_run *tkn_run) {
 
 /* Main Lexer */
 
-char tk_classify[256] = {
+static char tk_classify[256] = {
   ['a' ... 'z'] = TK_IDEN,
   ['A' ... 'Z'] = TK_TYPE,
   
@@ -76,7 +96,7 @@ char tk_classify[256] = {
   ['\n'] = TK_NEWL
 };
 
-char tk_transition[TK_LENGTH][TK_LENGTH] = {
+static char tk_transition[TK_LENGTH][TK_LENGTH] = {
   /* None -> State */
   [TK_NONE][TK_IDEN] = TK_IDEN,
   [TK_NONE][TK_TYPE] = TK_TYPE,
@@ -125,13 +145,13 @@ unit_lex(struct unit *unit) {
       tkn.slice.left = tkn.slice.right + 1;
       tkn.slice.right = i - 1;
       if (unlikely(tkn.kind != TK_NONE))
-        tkn_run = tkn_run_push(tkn_run, tkn);
+        tkn_run = tkn_run_push(unit, tkn_run, tkn);
     }
     tkn.kind = new_kind;
   }
   tkn.slice.left = tkn.slice.right + 1;
   tkn.slice.right = i - 1;
-  tkn_run_push(tkn_run, tkn);
+  tkn_run_push(unit, tkn_run, tkn);
 }
 
 void

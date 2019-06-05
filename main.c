@@ -14,7 +14,7 @@ int main(int argc, char **argv) {
   
   printf("\n -- unit_read --\n\n");
   unit_read(&unit, argv[1]);
-  printf("%s", unit.src);
+  printf("%s", unit.src + 1);
   
   printf("\n -- unit_lex --\n\n");
   unit_lex(&unit);

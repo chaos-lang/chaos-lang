@@ -48,6 +48,10 @@ enum tkn_kind {
 
   TK_DECL,
   TK_ARROW,
+  TK_IMPURE,
+  TK_RANGE,
+  TK_RANGE_LT,
+  TK_VARARGS,
 
   TK_INT,
   TK_CHAR,
@@ -57,10 +61,15 @@ enum tkn_kind {
   TK_LENGTH
 };
 
+enum tkn_rid {
+  RID_NONE = 0
+};
+
 struct tkn {
   struct slice slice; /* A slice of the source code the token refers to. */
   union {
-    unsigned long long u_int; /* A max-size unsigned integer. */
+    unsigned long long uint; /* A max-size unsigned integer. */
+    enum tkn_rid rid;         /* A reserved identifier. */
   } val;
   enum tkn_kind kind; /* The kind of the token. */
 };
@@ -92,6 +101,13 @@ struct unit {
   struct tkn_run *tkn_run; /* The tokenized run. */
   struct ast *ast;         /* The abstract syntax tree. */
 };
+
+/* slice.c */
+
+struct slice slice_combine(struct slice a, struct slice b);
+unsigned long long unit_slice_atoi(struct unit *unit, struct slice s);
+int unit_slice_cmp(struct unit *unit, struct slice a, struct slice b);
+int unit_slice_cmp_str(struct unit *unit, struct slice s, char *c);
 
 /* debug.c */
 

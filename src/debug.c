@@ -27,8 +27,12 @@ char *tk_name[TK_LENGTH] = {
   [TK_LCURLY] = "left curly bracket `{`",
   [TK_RCURLY] = "right curly bracket `}`",
  
-  [TK_DECL]  = "declaration `:`",
-  [TK_ARROW] = "arrow `->`",
+  [TK_DECL]     = "declaration `:`",
+  [TK_ARROW]    = "arrow `->`",
+  [TK_IMPURE]   = "impure `=>'",
+  [TK_RANGE]    = "inclusive range `..`",
+  [TK_RANGE_LT] = "exclusive range `..<`",
+  [TK_VARARGS]  = "varargs `...`",
 
   [TK_INT] = "integer literal",
   [TK_CHAR] = "character literal",
@@ -52,8 +56,9 @@ char *tk_debug[TK_LENGTH] = {
   [TK_LCURLY] = "tk_lcurly",
   [TK_RCURLY] = "tk_rcurly",
 
-  [TK_DECL]  = "tk_decl",
-  [TK_ARROW] = "tk_arrow",
+  [TK_DECL]   = "tk_decl",
+  [TK_ARROW]  = "tk_arrow",
+  [TK_IMPURE] = "tk_impure",
 
   [TK_INT] = "tk_int",
   [TK_CHAR] = "tk_char",
