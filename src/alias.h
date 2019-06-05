@@ -12,7 +12,7 @@
 
 #ifndef unlikely
 #ifdef __GNUC__
-#define unlikely(x) __builtin_expect((x), 0)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 #else
 #define unlikely(x) (x)
 #endif /* __GNUC__ */
@@ -20,7 +20,7 @@
 
 #ifndef likely
 #ifdef __GNUC__
-#define likely(x)   __builtin_expect(!(x), 0)
+#define likely(x)   __builtin_expect(!!(x), !0)
 #else
 #define likely(x)   (x)
 #endif /* __GNUC__ */

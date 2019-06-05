@@ -74,6 +74,6 @@ unit_slice_cmp_str(struct unit *unit, struct slice s, char *c) {
   for (size_t i = 0; i < len_s; i++)
     if (likely(unit->src[s.left + i] != c[i]))
       return 0;
-
+  
   return 1;
 }
