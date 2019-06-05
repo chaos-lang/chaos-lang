@@ -8,6 +8,7 @@
 /* Dependencies */
 
 #include <chaos.h>
+#include <time.h>
 
 /* Helper Functions */
 
@@ -128,10 +129,6 @@ static char tk_transition[TK_LENGTH][TK_LENGTH] = {
 
 void
 unit_lex(struct unit *unit) {
-  /* Set up a blank token run. */
-  if (unit->tkn_run != NULL)
-    tkn_run_free(unit->tkn_run);
-  unit->tkn_run = XCNEW(struct tkn_run);
   assert(unit->tkn_run);
 
   struct tkn_run *tkn_run = unit->tkn_run;
@@ -139,8 +136,9 @@ unit_lex(struct unit *unit) {
   size_t i;
   struct tkn tkn = {0};
   for (i = 0; i < unit->src_len; i++) {
-    enum tkn_kind new_kind = tk_transition[tkn.kind][tk_classify[unit->src[i]]];
-    new_kind = new_kind ? new_kind : tk_transition[TK_NONE][tk_classify[unit->src[i]]];
+    enum tkn_kind ch_class = tk_classify[unit->src[i]];
+    enum tkn_kind new_kind = tk_transition[tkn.kind][ch_class];
+    new_kind = new_kind ? new_kind : tk_transition[TK_NONE][ch_class];
     if (new_kind != tkn.kind) {
       tkn.slice.left = tkn.slice.right + 1;
       tkn.slice.right = i - 1;

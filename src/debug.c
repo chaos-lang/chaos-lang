@@ -81,7 +81,6 @@ unit_print_slice(struct unit *unit, struct slice slice) {
   assert(unit != NULL);
   assert(unit->src != NULL);
 
-  size_t i;
-  for (i = slice.left; i <= slice.right; i++)
-    putchar(unit->src[i]);
+  const size_t len = slice.right - slice.left + 1;
+  fwrite(unit->src + slice.left, 1, len, stdout);
 }

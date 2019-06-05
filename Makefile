@@ -1,9 +1,9 @@
-CC=cc
+CC=clang
 CFLAGS=-pipe
 LDFLAGS=-Isrc
 
 BUILD=-Og -g -fno-omit-frame-pointer
-RELEASE=-O3 -s -DNDEBUG
+RELEASE=-O2 -DNDEBUG
 
 default: build
 
@@ -14,4 +14,4 @@ release:
 	$(CC) $(CFLAGS) $(RELEASE) main.c src/*.c $(LDFLAGS)
 
 clean:
-	-@rm -f *.o *.out
+	-@rm -f *.o *.out *.data *.old

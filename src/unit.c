@@ -14,6 +14,7 @@
 struct unit
 unit_init(void) {
   struct unit unit = {0};
+  unit.tkn_run = XCNEW(struct tkn_run);
   return unit;
 }
 
