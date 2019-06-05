@@ -33,25 +33,34 @@ struct slice {
 enum tkn_kind {
   TK_NONE = 0, /* A placeholder "none" value. */
 
-  TK_DASH,    /* An ambiguous dash - */
+  TK_IDEN,
+  TK_TYPE,
+  TK_GENERIC,
 
-  TK_IDEN,    /* A variable identifier. */
-  TK_TYPE,    /* A type identifier.     */
-  TK_GENERIC, /* A generic identifier.  */
- 
-  TK_OPER, /* An operator. */
+  TK_OPER,
+  TK_HASH,
+  TK_LBRACK,
+  TK_RBRACK,
+  TK_LPAREN,
+  TK_RPAREN,
+  TK_LCURLY,
+  TK_RCURLY,
+
+  TK_DECL,
   TK_ARROW,
 
-  TK_INT, /* An integer. */
+  TK_INT,
+  TK_CHAR,
 
-  TK_LENGTH /* The length of this enum. */
+  TK_NEWL,
+
+  TK_LENGTH
 };
 
 struct tkn {
   struct slice slice; /* A slice of the source code the token refers to. */
   union {
     unsigned long long u_int; /* A max-size unsigned integer. */
-    signed   long long s_int; /* A max-size signed   integer. */
   } val;
   enum tkn_kind kind; /* The kind of the token. */
 };

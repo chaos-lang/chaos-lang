@@ -33,14 +33,15 @@ unit_read(struct unit *unit, char *filename) {
 
   /* Allocate the source buffer. */
   if (unit->src == NULL)
-    unit->src = XNEWVEC(char, len + 1);
+    unit->src = XNEWVEC(char, len + 2);
   else
-    unit->src = XRESIZEVEC(char, unit->src, len + 1);
+    unit->src = XRESIZEVEC(char, unit->src, len + 2);
   assert(unit->src != NULL);
   unit->src_len = len;
 
   /* Read the file into the buffer. */
-  fread(unit->src, len, 1, fp);
+  fread(unit->src + 1, len, 1, fp);
   fclose(fp);
-  unit->src[len] = '\0';
+  unit->src[0] = ' ';
+  unit->src[len + 1] = '\0';
 }
