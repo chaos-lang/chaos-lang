@@ -20,6 +20,8 @@ char *tk_name[TK_LENGTH] = {
   
   [TK_OPER] = "operator",
   [TK_HASH] = "hash `#`",
+  [TK_COMMA]  = "comma `,`",
+  [TK_EQUALS] = "equals `=`",
   [TK_LBRACK] = "left square bracket `[`",
   [TK_RBRACK] = "right square bracket `]`",
   [TK_LPAREN] = "left parenthesis `(`",
@@ -49,6 +51,8 @@ char *tk_debug[TK_LENGTH] = {
   
   [TK_OPER] = "tk_oper",
   [TK_HASH] = "tk_hash",
+  [TK_COMMA]  = "tk_comma",
+  [TK_EQUALS] = "tk_equals",
   [TK_LBRACK] = "tk_lbrack",
   [TK_RBRACK] = "tk_rbrack",
   [TK_LPAREN] = "tk_lparen",

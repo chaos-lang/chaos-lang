@@ -39,6 +39,8 @@ enum tkn_kind {
 
   TK_OPER,
   TK_HASH,
+  TK_COMMA,
+  TK_EQUALS,
   TK_LBRACK,
   TK_RBRACK,
   TK_LPAREN,

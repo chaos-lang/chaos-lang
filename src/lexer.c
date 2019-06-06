@@ -87,6 +87,8 @@ static char tk_classify[256] = {
   ['<'] = TK_OPER,
   ['>'] = TK_OPER,
   ['#'] = TK_HASH,
+  [','] = TK_COMMA,
+  ['='] = TK_EQUALS,
   ['['] = TK_LBRACK,
   [']'] = TK_RBRACK,
   ['('] = TK_LPAREN,
@@ -108,6 +110,8 @@ static char tk_transition[TK_LENGTH][TK_LENGTH] = {
 
   [TK_NONE][TK_OPER] = TK_OPER,
   [TK_NONE][TK_HASH] = TK_HASH,
+  [TK_NONE][TK_COMMA] = TK_COMMA,
+  [TK_NONE][TK_EQUALS] = TK_EQUALS,
   [TK_NONE][TK_LBRACK] = TK_LBRACK,
   [TK_NONE][TK_RBRACK] = TK_RBRACK,
   [TK_NONE][TK_LPAREN] = TK_LPAREN,
@@ -128,7 +132,10 @@ static char tk_transition[TK_LENGTH][TK_LENGTH] = {
   [TK_TYPE][TK_IDEN] = TK_TYPE,
   [TK_TYPE][TK_TYPE] = TK_TYPE,
 
-  [TK_OPER][TK_OPER] = TK_OPER
+  [TK_OPER][TK_OPER] = TK_OPER,
+
+  /* Re-Ambiguation Codes */
+  [TK_EQUALS][TK_OPER] = TK_OPER
 };
 
 void
@@ -139,17 +146,24 @@ unit_lex(struct unit *unit) {
 
   size_t i;
   struct tkn tkn = {0};
+  tkn.slice.right = -1;
+
   for (i = 0; i < unit->src_len; i++) {
     enum tkn_kind ch_class = tk_classify[unit->src[i]];
+
     enum tkn_kind new_kind = tk_transition[tkn.kind][ch_class];
-    new_kind = new_kind ? new_kind : tk_transition[TK_NONE][ch_class];
-    if (new_kind != tkn.kind) {
+    enum tkn_kind fix_kind = new_kind ? new_kind : tk_transition[TK_NONE][ch_class];
+
+    if (tkn.kind && (!new_kind)) {
       tkn.slice.left = tkn.slice.right + 1;
       tkn.slice.right = i - 1;
       tkn_run = tkn_run_push(unit, tkn_run, tkn);
     }
-    tkn.kind = new_kind;
+
+    tkn.kind = fix_kind;
+    tkn.slice.right += (tkn.kind == TK_NONE) ? 1 : 0;
   }
+  
   tkn.slice.left = tkn.slice.right + 1;
   tkn.slice.right = i - 1;
   tkn_run_push(unit, tkn_run, tkn);
