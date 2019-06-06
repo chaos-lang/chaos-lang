@@ -44,6 +44,15 @@ token_assoc[256] = {
   ['\n']        = LTKN_NEWLINE
 };
 
+/* Table of disambiguation of tokens.
+   We use 0 valued tokens to indicate we just preserve the current token. */
+
+static const enum token_type
+disambig_assoc[512] = {
+  ['-' + ('>' << 1)] = TOKEN_RARROW,
+  ['<' + ('-' << 1)] = TOKEN_LARROW
+};
+
 /* Initialize a tokenrun. */
 
 void
@@ -68,30 +77,33 @@ next_tokenrun(tokenrun *run) {
 
 enum lexer_state {
   LS_SCAN,            /* Scan the next token and ascertain its type. */
-  LS_NL_DISAMBIG,     /* Newline disambiguation. */
   LS_WHITESPACE,      /* Skip over whitespace. */
   LS_IDENT,           /* Lex over an identifier. */
   LS_NUMBER,          /* Lex over a number. */
   LS_STRING,          /* Lex over a string. */
-  LS_DASH_DISAMBIG,   /* Dash disambiguation. */
-  LS_LANGLE_DISAMBIG, /* L-angle disambiguation. */
+  LS_DISAMBIG,        /* General disambiguation. */
   LS_WHOT,            /* Seriously, whot? */
   LS_LENGTH
 };
 
 static const enum lexer_state
 transition[LS_LENGTH][TOKEN_LENGTH] = {
-  [LS_SCAN][LTKN_NEWLINE]          = LS_NL_DISAMBIG,
+  /* LS_SCAN transitions. */
+  [LS_SCAN][LTKN_NEWLINE]          = LS_WHITESPACE,
   [LS_SCAN][LTKN_WHITESPACE]       = LS_WHITESPACE,
   [LS_SCAN][TOKEN_NAME]            = LS_IDENT,
   [LS_SCAN][TOKEN_NUMBER]          = LS_NUMBER,
   [LS_SCAN][TOKEN_STRING]          = LS_STRING,
-  [LS_SCAN][TOKEN_MINUS]           = LS_DASH_DISAMBIG,
-  [LS_SCAN][TOKEN_LANGLE]          = LS_LANGLE_DISAMBIG,
+  [LS_SCAN][TOKEN_MINUS]           = LS_DISAMBIG,
+  [LS_SCAN][TOKEN_LANGLE]          = LS_DISAMBIG,
+  /* LS_WHITESPACE transitions. */
   [LS_WHITESPACE][LTKN_WHITESPACE] = LS_WHITESPACE,
+  /* LS_IDENT transitions. */
   [LS_IDENT][TOKEN_NAME]           = LS_IDENT,
   [LS_IDENT][TOKEN_NUMBER]         = LS_IDENT,
+  /* LS_NUMBER transitions. */
   [LS_NUMBER][TOKEN_NUMBER]        = LS_NUMBER,
+  /* LS_STRING transitions. */
   [LS_STRING][TOKEN_STRING]        = LS_SCAN
 };
 
@@ -112,90 +124,48 @@ lex_unit(Unit *unit) {
   #define nc (unit->buf[i + 1])
   /* The main lexer state machine loop. */
   while (1) {
-    switch (state) {
-      /* Prepare a new token from the current run and if necessary get the
-         next run. Also check to see if we've reached the unit's rlimit
-         and if so, take appropriate action as that's EOF. */
-      /* TODO: Replace `rlimit` with `len`? */
-      case LS_SCAN: {
-        /*if (tp1.tv_nsec != tp0.tv_nsec)
-          timing_stop("Lex stage", tp0, tp1);
-        timing_start(tp0);*/
-        result = unit->cur_token;
-        /* Handle possible EOF. */
-        if (unlikely(unit->buf + i == unit->rlimit)) {
-          result->type = TOKEN_EOF;
-          goto _exit;
-        }
-        /* Figure out which state to transition to in order to lex the token
+    /* Prepare a new token from the current run and if necessary get the
+       next run. Also check to see if we've reached the unit's rlimit
+       and if so, take appropriate action as that's EOF. */
+    if (state == LS_SCAN) {
+      if (unlikely(unit->buf + i == unit->rlimit)) {
+        result->type = TOKEN_EOF;
+        goto _exit;
+      }
+      result = unit->cur_token;
+      /* Figure out which state to transition to in order to lex the token
            properly. */
-        result->type = type = token_assoc[c];
-        result->slice_start = i;
-        result->slice_end = i;
-        if (type == LTKN_WHITESPACE || type == LTKN_NEWLINE)
+      result->type = type = token_assoc[c];
+      result->slice_start = i;
+      result->slice_end = i;
+      /* Handle newlines and whitespace. */
+      if (type == LTKN_NEWLINE) {
+        if (!unit->need_eol)
           goto _next_state;
-        unit->need_eol = 1;
-        goto _next_token;
-      };
-      /* Newline disambiguation. */
-      case LS_NL_DISAMBIG: {
-        if (unit->need_eol && pc == '\n') {
-          result->type = TOKEN_SEMICOLON;
-          goto _next_token;
-        }
-      } goto _next_state;
-      /* Lex over some whitespace. */
-      case LS_WHITESPACE:
+        unit->need_eol = 0;
+        result->type = TOKEN_SEMICOLON;
+      }
+      else if (type == LTKN_WHITESPACE)
         goto _next_state;
-      /* Lex over an ident. */
-      case LS_IDENT: {
-        type = token_assoc[c];
-        /* If we encounter a token that isn't a valid ident token, we're done
-           lexing the ident, but we still need to run a lookup to see if it's
-           a keyword. */
-        if (unlikely(type != TOKEN_NAME && type != TOKEN_NUMBER)) {
-          /*lookup_node node = ht_lookup(keywords, result->val.str);
-          if (node) {
-            result->type = TOKEN_KEYWORD;
-            result->val.rid = node->code;
-          }*/
-        }
-      } goto _next_state;
-      /* Lex over a number. */
-      /* TODO: Actually lex the number maybe? */
-      case LS_NUMBER: {
-        /* Do nothing for now... */
-      } goto _next_state;
-      /* Lex over a string. */
-      case LS_STRING: {
-        /* Do nothing for now... */
-      } goto _next_state;
-      /* Dash disambiguation. */
-      case LS_DASH_DISAMBIG: {
-        if (c == '>') {
-          result->type = TOKEN_RARROW;
-          i++;
-        }
-      } goto _next_state;
-      /* L-angle disambiguation. */
-      case LS_LANGLE_DISAMBIG: {
-        if (c == '-') {
-          result->type = TOKEN_LARROW;
-          i++;
-        }
-      } goto _next_state;
-      /* Return to scan state. */
-      default:
-        state = LS_SCAN;
-        continue;
+      else
+        unit->need_eol = 1;
+      /* Handle incrementing the current token and getting the next tokenrun
+         if necessary. */
+      unit->cur_token++;
+      if (unlikely(unit->cur_token == unit->cur_run->limit)) {
+        unit->cur_run = next_tokenrun(unit->cur_run);
+        unit->cur_token = unit->cur_run->tokens;
+      }
     }
-    /* Handle incrementing the current token and getting the next tokenrun
-       if necessary. */
-  _next_token:
-    unit->cur_token++;
-    if (unlikely(unit->cur_token == unit->cur_run->limit)) {
-      unit->cur_run = next_tokenrun(unit->cur_run);
-      unit->cur_token = unit->cur_run->tokens;
+    else if (state == LS_DISAMBIG) {
+      /* Look up the next few chars in the disambiguation table. */
+      type = disambig_assoc[pc + (c << 1)];
+      /* If we find a token, then we can replace the type and skip two chars
+         ahead. Otherwise just go ahead one char. */
+      if (type != TOKEN_OTHER) {
+        result->type = type;
+        i++;
+      }
     }
     /* Handle transitioning to the next state. */
   _next_state:
