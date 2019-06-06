@@ -34,6 +34,10 @@ tkn_run_push(struct unit *unit, struct tkn_run *tkn_run, struct tkn tkn) {
   assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
 
   switch (tkn.kind) {
+    case TK_NONE: {
+      return tkn_run;
+    } break;
+    
     case TK_OPER: {
       size_t hash = 0;
       for (size_t i = tkn.slice.left; i <= tkn.slice.right; i++)
@@ -142,8 +146,7 @@ unit_lex(struct unit *unit) {
     if (new_kind != tkn.kind) {
       tkn.slice.left = tkn.slice.right + 1;
       tkn.slice.right = i - 1;
-      if (unlikely(tkn.kind != TK_NONE))
-        tkn_run = tkn_run_push(unit, tkn_run, tkn);
+      tkn_run = tkn_run_push(unit, tkn_run, tkn);
     }
     tkn.kind = new_kind;
   }
