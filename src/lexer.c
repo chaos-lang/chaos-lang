@@ -12,9 +12,9 @@
 
 /* Globals */
 
-struct {
-  size_t cmt_depth; // #[ comment ]#
-  char   cmt_hash;  // # comment
+static struct {
+  long long cmt_depth; // #[ comment ]#
+  char      cmt_hash;  // # comment
 } push_state = {0};
 
 /* Helper Functions */
@@ -36,38 +36,31 @@ static char *tk_oper_string[TK_LENGTH] = {
 };
 
 static inline struct tkn_run *
-tkn_run_push(struct unit *unit, struct tkn_run *tkn_run, struct tkn tkn) {
+tkn_run_push(struct unit *restrict unit, struct tkn_run *restrict tkn_run, struct tkn tkn) {
   assert(tkn_run != NULL);
   assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
 
-  if (unlikely(push_state.cmt_depth || push_state.cmt_hash)) {
-    push_state.cmt_depth += (tkn.kind == TK_LCMT) ? 1 : 0;
-    push_state.cmt_depth -= (tkn.kind == TK_RCMT) ? (push_state.cmt_depth ? 1 : 0) : 0;
-    push_state.cmt_hash = (tkn.kind == TK_NEWL) ? 0 : 1;
-    return tkn_run;
-  }
+  push_state.cmt_depth += (tkn.kind == TK_LCMT) ? 1 
+                        : (tkn.kind == TK_RCMT) ? -1
+                        : 0; 
+  
+  push_state.cmt_hash = (tkn.kind == TK_HASH) ? 1 
+                      : (tkn.kind == TK_NEWL) ? 0 
+                      : push_state.cmt_hash;
+
+  tkn.kind = (push_state.cmt_hash || push_state.cmt_depth) ? TK_NONE : tkn.kind;
 
   switch (tkn.kind) {
     case TK_NONE: {
       return tkn_run;
     } break;
 
-    case TK_HASH: {
-      push_state.cmt_hash = 1;
-      return tkn_run;
-    } break;
-    
     case TK_OPER: {
       size_t hash = 0;
       for (size_t i = tkn.slice.left; i <= tkn.slice.right; i++)
         hash += unit->src[i];
       enum tkn_kind kind = tk_oper_classify[hash];
       tkn.kind = kind && unit_slice_cmp_str(unit, tkn.slice, tk_oper_string[kind]) ? kind : tkn.kind;
-    } break;
-
-    case TK_LCMT: {
-      push_state.cmt_depth++;
-      return tkn_run;
     } break;
 
     case TK_INT: {
@@ -78,6 +71,7 @@ tkn_run_push(struct unit *unit, struct tkn_run *tkn_run, struct tkn tkn) {
   if (unlikely(tkn_run->len == CHAOS_TKN_RUN_LEN)) {
     tkn_run->next = XCNEW(struct tkn_run);
     tkn_run = tkn_run->next;
+    //__builtin_prefetch(tkn_run->tkns, 1, 1);
   }
 
   tkn_run->tkns[tkn_run->len++] = tkn;
@@ -168,10 +162,10 @@ static char tk_transition[TK_LENGTH][TK_LENGTH] = {
 };
 
 void
-unit_lex(struct unit *unit) {
+unit_lex(struct unit *restrict unit) {
   assert(unit->tkn_run);
 
-  struct tkn_run *tkn_run = unit->tkn_run;
+  struct tkn_run *restrict tkn_run = unit->tkn_run;
 
   size_t i;
   struct tkn tkn = {0};

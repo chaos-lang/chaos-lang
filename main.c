@@ -29,10 +29,10 @@ int main(int argc, char **argv) {
   
   struct unit unit = unit_init();
   
-  printf("\n -- unit_read --\n\n");
+  //printf("\n -- unit_read --\n\n");
   unit_read(&unit, argv[1]);
 
-  printf("%s", unit.src + 1);
+  //printf("%s", unit.src + 1);
   
   printf("\n -- unit_lex --\n\n");
 

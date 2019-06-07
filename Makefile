@@ -1,9 +1,9 @@
-CC=clang
+CC=cc
 CFLAGS=-pipe
 LDFLAGS=-Isrc
 
 BUILD=-Og -g -fno-omit-frame-pointer
-RELEASE=-O2 -DNDEBUG
+RELEASE=-O3 -s -march=native -mavx2 -DNDEBUG
 
 default: build
 
