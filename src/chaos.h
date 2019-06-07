@@ -48,6 +48,8 @@ enum tkn_kind {
   TK_LCURLY,
   TK_RCURLY,
 
+  TK_LCMT,
+  TK_RCMT,
   TK_DECL,
   TK_ARROW,
   TK_IMPURE,

@@ -1,0 +1,5 @@
+foo : A ->
+
+bar : A -> B
+
+baz : -> B

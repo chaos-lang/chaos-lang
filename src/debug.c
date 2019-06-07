@@ -29,6 +29,8 @@ char *tk_name[TK_LENGTH] = {
   [TK_LCURLY] = "left curly bracket `{`",
   [TK_RCURLY] = "right curly bracket `}`",
  
+  [TK_LCMT]     = "left comment `#[`",
+  [TK_RCMT]     = "right comment `]#`",
   [TK_DECL]     = "declaration `:`",
   [TK_ARROW]    = "arrow `->`",
   [TK_IMPURE]   = "impure `=>'",
@@ -60,6 +62,8 @@ char *tk_debug[TK_LENGTH] = {
   [TK_LCURLY] = "tk_lcurly",
   [TK_RCURLY] = "tk_rcurly",
 
+  [TK_LCMT]   = "tk_lcmt",
+  [TK_RCMT]   = "tk_rcmt",
   [TK_DECL]   = "tk_decl",
   [TK_ARROW]  = "tk_arrow",
   [TK_IMPURE] = "tk_impure",
