@@ -92,6 +92,8 @@ struct Unit {
   /* Flag indicating whether to replace the next newline with an EOL. */
   unsigned int need_eol : 1;
   Unit *prev;
+  /* File details (filename). */
+  char *filename;
   /* Tokenruns (put in the outer reader struct?) */
   tokenrun base_run;
   tokenrun *cur_run;

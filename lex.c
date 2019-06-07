@@ -112,7 +112,7 @@ transition[LS_LENGTH][TOKEN_LENGTH] = {
 void
 lex_unit(Unit *unit) {
   enum lexer_state state = LS_SCAN;
-  enum lexer_state next_state;
+  volatile enum lexer_state next_state;
   enum token_type type;
   token *result;
   unsigned int i = 0;
@@ -171,7 +171,7 @@ lex_unit(Unit *unit) {
   _next_state:
     type = token_assoc[c];
     next_state = transition[state][type];
-    if (state == next_state || next_state != LS_SCAN) {
+    if (likely(state == next_state || next_state != LS_SCAN)) {
       i++; /* Increment unless returning to scan for reclassification. */
       result->slice_end++;
     }
