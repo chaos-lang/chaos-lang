@@ -30,38 +30,59 @@ struct slice {
 
 /* Lexer Types */
 
-enum tkn_kind {
-  TK_NONE = 0, /* A placeholder "none" value. */
+enum tkn_state {
+  TK_NONE = 0,
 
-  TK_IDEN,
-  TK_TYPE,
-  TK_GENERIC,
+  /* Generic Kinds */
+  TK_IDEN, /* Variable Identifier */
+  TK_TYPE, /* Type     Identifier */
+  
+  TK_OPER, /* Operator */
 
-  TK_OPER,
+  /* Single-Post Operators */
+  TK_COMMA,  /* , */
+  TK_LBRACK, /* [ */
+  TK_RBRACK, /* ] */
+  TK_LPAREN, /* ( */
+  TK_RPAREN, /* ) */
+  TK_LCURLY, /* { */
+  TK_RCURLY, /* } */
+
+  /* Sovereign Operators */
+  TK_NEWL, /* Newline */
+
+  /* Sovereign Disambiguation Operators */
+  TK_EQUALS, /* = */
+  TK_UNDER,  /* _ */
+  TK_DECL,   /* : */
+
+  /* Disambiguation Operators */
+  TK_LANGLE, /* < */
+  TK_RANGLE, /* > */
+  TK_DASH,   /* - */
+  TK_DOT,    /* . */
+
+  /* Transitionary States */
   TK_HASH,
-  TK_COMMA,
-  TK_EQUALS,
-  TK_LBRACK,
-  TK_RBRACK,
-  TK_LPAREN,
-  TK_RPAREN,
-  TK_LCURLY,
-  TK_RCURLY,
+
+  /* Literals */
+  TK_INT, /* Integer Literal */
+
+  /* Transition Table Length */
+  TK_TRANSITION
+};
+
+enum tkn_kind {
+  TK_ARROW = TK_TRANSITION,
+  TK_IMPURE,
+  TK_RANGE,
+  TK_VARARGS,
+  TK_RANGE_LT,
 
   TK_LCMT,
   TK_RCMT,
-  TK_DECL,
-  TK_ARROW,
-  TK_IMPURE,
-  TK_RANGE,
-  TK_RANGE_LT,
-  TK_VARARGS,
 
-  TK_INT,
-  TK_CHAR,
-
-  TK_NEWL,
-
+  /* Token Kind Length */
   TK_LENGTH
 };
 
