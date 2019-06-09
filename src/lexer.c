@@ -33,6 +33,7 @@ tkn_run_push(struct unit *restrict unit, struct tkn_run *restrict tkn_run, struc
   tkn.kind = (push_state.cmt_hash || push_state.cmt_depth) ? TK_NONE : tkn.kind;
 
   switch (tkn.kind) {
+    case TK_RCMT:
     case TK_NONE: {
       return tkn_run;
     } break;
@@ -114,6 +115,8 @@ static char tk_transition[TK_LENGTH][TK_TRANSITION] = {
   [TK_NONE][TK_LCURLY] = TK_LCURLY,
   [TK_NONE][TK_RCURLY] = TK_RCURLY,
 
+  [TK_NONE][TK_NEWL] = TK_NEWL,
+
   [TK_NONE][TK_EQUALS] = TK_EQUALS,
   [TK_NONE][TK_UNDER]  = TK_UNDER,
   [TK_NONE][TK_DECL]   = TK_DECL,
@@ -122,6 +125,10 @@ static char tk_transition[TK_LENGTH][TK_TRANSITION] = {
   [TK_NONE][TK_RANGLE] = TK_RANGLE,
   [TK_NONE][TK_DASH]   = TK_DASH,
   [TK_NONE][TK_DOT]    = TK_DOT,
+
+  [TK_NONE][TK_HASH] = TK_HASH,
+
+  [TK_NONE][TK_INT] = TK_INT,
 
   /* Generic Kinds Propagation */
   [TK_IDEN][TK_IDEN] = TK_IDEN,
