@@ -29,27 +29,26 @@ int main(int argc, char **argv) {
   
   struct unit unit = unit_init();
 
-  printf("lookup table size: %i (n = %i)\n", TK_LENGTH * TK_TRANSITION, TK_LENGTH);
 
-  //printf("\n -- unit_read --\n\n");
+  printf("\n -- unit_read --\n\n");
+  
   unit_read(&unit, argv[1]);
-
-  //printf("%s", unit.src + 1);
+ 
+  printf("%s", unit.src + 1);
   
   printf("\n -- unit_lex --\n\n");
-
+  
   struct timespec start, stop;
-
   clock_gettime(CLOCK_MONOTONIC, &start);
-
   unit_lex(&unit);
-
   clock_gettime(CLOCK_MONOTONIC, &stop);
 
-  printf("elapsed time: %zu:%zu\n", diff(start, stop).tv_sec, diff(start, stop).tv_nsec);
-
   unit_lex_print(&unit);
+
+  printf("\nelapsed time: %zu:%zu\n", diff(start, stop).tv_sec, diff(start, stop).tv_nsec);
+  printf("lookup table size: %i (n = %i)\n\n", TK_LENGTH * TK_TRANSITION, TK_LENGTH);
   
   unit_free(&unit);
+  
   return 0;
 }
