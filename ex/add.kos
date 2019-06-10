@@ -1,0 +1,6 @@
+add : a b ->
+  a + b
+
+sq : n ->
+  n * n
+

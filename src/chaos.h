@@ -94,9 +94,10 @@ struct tkn {
   struct slice slice; /* A slice of the source code the token refers to. */
   union {
     unsigned long long uint; /* A max-size unsigned integer. */
-    enum tkn_rid rid;         /* A reserved identifier. */
+    enum tkn_rid rid;        /* A reserved identifier. */
   } val;
-  enum tkn_kind kind; /* The kind of the token. */
+  enum tkn_kind kind;        /* The kind of the token. */
+  char indent;               /* The indentation level of the token. */
 };
 
 struct tkn_run {

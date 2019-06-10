@@ -15,10 +15,28 @@
 static struct {
   long long cmt_depth; // #[ comment ]#
   char      cmt_hash;  // # comment
+  char      indent;
 } push_state = {0};
 
 static inline struct tkn_run *
-tkn_run_push(struct unit *restrict unit, struct tkn_run *restrict tkn_run, struct tkn tkn) {
+tkn_run_push_raw(struct unit *restrict unit, struct tkn_run *restrict tkn_run,
+struct tkn tkn) {
+  assert(tkn_run != NULL);
+  assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
+
+  if (unlikely(tkn_run->len == CHAOS_TKN_RUN_LEN)) {
+    tkn_run->next = XCNEW(struct tkn_run);
+    tkn_run = tkn_run->next;
+  }
+
+  tkn_run->tkns[tkn_run->len++] = tkn;
+
+  return tkn_run;
+}
+
+static inline struct tkn_run *
+tkn_run_push(struct unit *restrict unit, struct tkn_run *restrict tkn_run,
+struct tkn tkn) {
   assert(tkn_run != NULL);
   assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
 
@@ -38,18 +56,19 @@ tkn_run_push(struct unit *restrict unit, struct tkn_run *restrict tkn_run, struc
       return tkn_run;
     } break;
 
+    case TK_NEWL: {
+      push_state.indent = tkn.slice.right - tkn.slice.left;
+      for (size_t i = tkn.slice.left + 1; i <= tkn.slice.right; i++)
+        push_state.indent -= (unit->src[i] == '\n') ? 1 : 0;
+    } break;
+
     case TK_INT: {
       tkn.val.uint = unit_slice_atoi(unit, tkn.slice);
     } break;
   }
 
-  if (unlikely(tkn_run->len == CHAOS_TKN_RUN_LEN)) {
-    tkn_run->next = XCNEW(struct tkn_run);
-    tkn_run = tkn_run->next;
-    //__builtin_prefetch(tkn_run->tkns, 1, 1);
-  }
-
-  tkn_run->tkns[tkn_run->len++] = tkn;
+  tkn.indent = push_state.indent;
+  tkn_run = tkn_run_push_raw(unit, tkn_run, tkn);
 
   return tkn_run;
 }
@@ -159,6 +178,11 @@ static char tk_transition[TK_LENGTH][TK_TRANSITION] = {
   [TK_RANGE][TK_DOT]     = TK_VARARGS,
   [TK_RANGE][TK_LANGLE]  = TK_RANGE_LT,
 
+  /* Indentation */
+  [TK_NEWL][TK_NONE] = TK_NEWL,
+  [TK_NEWL][TK_NEWL] = TK_NEWL,
+
+  /* Comments */
   [TK_HASH][TK_LBRACK] = TK_LCMT,
   [TK_RBRACK][TK_HASH] = TK_RCMT
 };
@@ -197,10 +221,12 @@ unit_lex(struct unit *restrict unit) {
 void
 unit_lex_print(struct unit *unit) {
   struct tkn_run *tkn_run = unit->tkn_run;
-  size_t i;
+  int indent = 0;
 
   while (tkn_run) {
-    for (i = 0; i < tkn_run->len; i++) {
+    for (size_t i = 0; i < tkn_run->len; i++) {
+      for (size_t j = 0; j < tkn_run->tkns[i].indent; j++)
+        putchar(' ');
       printf("%s ", tk_debug[tkn_run->tkns[i].kind]);
       if (tkn_run->tkns[i].kind != TK_NEWL)
         unit_print_slice(unit, tkn_run->tkns[i].slice);

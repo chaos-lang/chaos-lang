@@ -28,7 +28,9 @@ int main(int argc, char **argv) {
   assert(argc > 1);
   
   struct unit unit = unit_init();
-  
+
+  printf("lookup table size: %i (n = %i)\n", TK_LENGTH * TK_TRANSITION, TK_LENGTH);
+
   //printf("\n -- unit_read --\n\n");
   unit_read(&unit, argv[1]);
 
