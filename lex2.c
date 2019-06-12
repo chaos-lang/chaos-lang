@@ -3,7 +3,7 @@
    description: A new lexer that follows the notions outlined by Sean Barrett
                 in his article (http://nothings.org/computer/lexing.html) more
                 closely to improve performance.
-   date: 2019-05-31
+   date: 2019-06-12
    */
 
 enum equivalence_classes {

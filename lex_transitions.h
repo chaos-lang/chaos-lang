@@ -2,7 +2,7 @@
    author: Simon Lovell Bart (microchips-n-dip)
    description: A header file containing the lexer state transition table.
                 This is separate for code readability and maintainability.
-   date: 2019-05-31
+   date: 2019-06-12
    */
 
 static const signed char
