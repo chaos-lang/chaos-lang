@@ -57,7 +57,7 @@ struct tkn tkn) {
     } break;
 
     case TK_NEWL: {
-      push_state.indent = tkn.slice.right - tkn.slice.left;
+      push_state.indent = 0;
       for (size_t i = tkn.slice.left; i <= tkn.slice.right; i++) {
         push_state.indent += (unit->src[i] == ' ') ? 1 : 0;
         push_state.indent = (unit->src[i] == '\n') ? 0 : push_state.indent;
