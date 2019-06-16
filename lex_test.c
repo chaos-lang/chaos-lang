@@ -55,6 +55,7 @@ unit_read(Unit *unit, char *filename) {
 }
 
 int main(int argc, const char **argv) {
+  lex_table_info();
   if (argc < 2) {
     printf("Provide an input file\n");
     exit(1);
@@ -66,15 +67,19 @@ int main(int argc, const char **argv) {
   unit.base_run.prev = NULL;
   unit.cur_run = &unit.base_run;
   unit.cur_token = unit.base_run.tokens;
+  unit.cur = unit.buf;
   /* Lex the unit. */
   struct timespec tp0, tp1;
   timing_start(tp0);
-  lex_unit(&unit);
+  for (int i = 0; i < 1; i++) {
+    unit.cur = unit.buf;
+    lex_unit(&unit);
+  }
   timing_stop("Lex", tp0, tp1);
   /* Display the output of the lexer. */
   unit.cur_run = &unit.base_run;
   unit.cur_token = unit.cur_run->tokens;
-  while (unit.cur_token->type != TOKEN_EOF) {
+  /*while (unit.cur_token->type != TOKEN_EOF) {
     //printf("%d\n", unit.cur_token->type);
     if (token_name[unit.cur_token->type])
       printf("%s\n", token_name[unit.cur_token->type]);
@@ -83,6 +88,6 @@ int main(int argc, const char **argv) {
       unit.cur_run = next_tokenrun(unit.cur_run);
       unit.cur_token = unit.cur_run->tokens;
     }
-  }
+  }*/
   destroy_unit(&unit);
 }
