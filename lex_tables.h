@@ -28,6 +28,7 @@ equivalence_class[256] = {
   [' ']         = EQCLASS_WHITESPACE,
   ['\t']        = EQCLASS_WHITESPACE,
   ['\n']        = EQCLASS_NEWLINE,
+  ['_']         = EQCLASS_LETTER, /* Consider '_' a letter. */
   ['A' ... 'Z'] = EQCLASS_LETTER,
   ['a' ... 'z'] = EQCLASS_LETTER,
   ['0' ... '9'] = EQCLASS_NUMBER,
