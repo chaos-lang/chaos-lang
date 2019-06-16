@@ -7,16 +7,18 @@
 #include "lex.h"
 
 static const char *
-token_name[TOKEN_LENGTH] = {
+token_name[TOKEN_END] = {
   [TOKEN_OTHER]     = "token_other",
+  [TOKEN_NEWLINE]   = "token_newline",
   [TOKEN_NAME]      = "token_name",
   [TOKEN_NUMBER]    = "token_number",
-  [TOKEN_RANGLE]    = "token_gt",
+  [TOKEN_EQUALS]    = "token_equals",
+  [TOKEN_COLON]     = "token_colon",
   [TOKEN_RARROW]    = "token_rarrow",
-  [TOKEN_PLUS]      = "token_plus",
-  [TOKEN_MINUS]     = "token_minus",
-  [TOKEN_SEMICOLON] = "token_eol",
-  [LTKN_WHITESPACE] = "ltkn_whitespace"
+  [TOKEN_IMPURE]    = "token_impure",
+  [TOKEN_ELLIPSIS]  = "token_ellipsis",
+  [TOKEN_OPERATOR]  = "token_operator",
+  [TOKEN_EOF]       = "token_eof"
 };
 
 void 
@@ -79,7 +81,7 @@ int main(int argc, const char **argv) {
   /* Display the output of the lexer. */
   unit.cur_run = &unit.base_run;
   unit.cur_token = unit.cur_run->tokens;
-  /*while (unit.cur_token->type != TOKEN_EOF) {
+  while (unit.cur_token->type != TOKEN_EOF) {
     //printf("%d\n", unit.cur_token->type);
     if (token_name[unit.cur_token->type])
       printf("%s\n", token_name[unit.cur_token->type]);
@@ -88,6 +90,6 @@ int main(int argc, const char **argv) {
       unit.cur_run = next_tokenrun(unit.cur_run);
       unit.cur_token = unit.cur_run->tokens;
     }
-  }*/
+  }
   destroy_unit(&unit);
 }
