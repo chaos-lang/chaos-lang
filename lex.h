@@ -15,35 +15,39 @@ struct String {
 /* Token type enumeration. */
 
 enum token_type {
+  TOKEN_NONE,
   TOKEN_OTHER,         /* An unknown character. */
+  TOKEN_NEWLINE,
   TOKEN_NAME,          /* Name/identifier token. */
-  TOKEN_KEYWORD,       /* Keyword/reserved word token. */
+  //TOKEN_KEYWORD,       /* Keyword/reserved word token. */
   TOKEN_NUMBER,        /* A number token. */
-  TOKEN_STRING,        /* A string literal token. */
-  TOKEN_CHAR,
-  TOKEN_OPEN_PAREN,
-  TOKEN_CLOSE_PAREN,
-  TOKEN_OPEN_BRACKET,
-  TOKEN_CLOSE_BRACKET,
-  TOKEN_OPEN_BRACE,
-  TOKEN_CLOSE_BRACE,
-  TOKEN_LANGLE,
-  TOKEN_RANGLE,
-  TOKEN_LARROW,
-  TOKEN_RARROW,
   TOKEN_EQUALS,
-  TOKEN_PLUS,
-  TOKEN_MINUS,
-  TOKEN_MULT,
-  TOKEN_DIV,
   TOKEN_COLON,
-  TOKEN_COMMA,
-  TOKEN_COMMENT,
-  TOKEN_SEMICOLON,
+  TOKEN_RARROW,
+  TOKEN_IMPURE,
+  TOKEN_ELLIPSIS,
+  TOKEN_OPERATOR,
+  //TOKEN_STRING,        /* A string literal token. */
+  //TOKEN_CHAR,
+  //TOKEN_OPEN_PAREN,
+  //TOKEN_CLOSE_PAREN,
+  //TOKEN_OPEN_BRACKET,
+  //TOKEN_CLOSE_BRACKET,
+  //TOKEN_OPEN_BRACE,
+  //TOKEN_CLOSE_BRACE,
+  //TOKEN_LANGLE,
+  //TOKEN_RANGLE,
+  //TOKEN_LARROW,
+  //TOKEN_RARROW,
+  //TOKEN_PLUS,
+  //TOKEN_MINUS,
+  //TOKEN_MULT,
+  //TOKEN_DIV,
+  //TOKEN_COMMA,
+  //TOKEN_COMMENT,
+  //TOKEN_SEMICOLON,
   TOKEN_EOF,
-  LTKN_WHITESPACE,     /* This isn't a real token per-se. */
-  LTKN_NEWLINE,
-  TOKEN_LENGTH
+  TOKEN_END
 };
 
 typedef struct token token;
