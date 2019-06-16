@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "alias.h"
 #include "lex.h"
@@ -34,7 +33,13 @@ next_tokenrun(tokenrun *run) {
   return run->next;
 }
 
+/* Include the lexer tables. */
+
 #include "lex_tables.h"
+
+void lex_table_info(void) {
+  printf("Lexer table size: %ld\n", sizeof(transitions));
+}
 
 /* Lex an entire unit. */
 
@@ -44,7 +49,6 @@ lex_unit(Unit *unit) {
   token *result;
   char c;
   int eq_class;
-  struct timespec tp0, tp1;
   while (1) {
     /* Prepare a new token from the tokenrun. */
     result = unit->cur_token++;
@@ -62,22 +66,12 @@ lex_unit(Unit *unit) {
     do {
       c = *unit->cur;
       /* Determine the next state to go to. */
-      eq_class = equivalence_class[c];
+      eq_class = equivalence_class[(unsigned char) c];
       state = transitions[state][eq_class];
       result->len += stateful_slice_increments[state];
       /* In the case of increments, we need to reset whenever we've got a
          newline otherwise we'll count empty lines. */
-#if defined _ARCH_X86_
-      asm volatile (
-        "\tcmpl\t%[eqclass], %[EQCLASS_NEWLINE]\n"
-        "\tcmove\t%[len], $0\n"
-        : [len] "=r" (result->len)
-        : [eqclass] "r" (eq_class),
-          [EQCLASS_NEWLINE] "N" (EQCLASS_NEWLINE)
-      );
-#else
       result->len = (eq_class == EQCLASS_NEWLINE) ? 0 : result->len;
-#endif
       unit->cur += stateful_char_increments[state];
     } while (state < LS_NONTERMINALS_END);
     result->type = state - LS_NONTERMINALS_END;
