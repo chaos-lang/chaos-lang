@@ -38,7 +38,10 @@ next_tokenrun(tokenrun *run) {
 #include "lex_tables.h"
 
 void lex_table_info(void) {
+  printf("Equivalence class table size: %ld\n", sizeof(equivalence_class));
   printf("Lexer table size: %ld\n", sizeof(transitions));
+  printf("Increment tables size: %ld\n",
+         sizeof(stateful_char_increments) + sizeof(stateful_slice_increments));
 }
 
 /* Lex an entire unit. */
