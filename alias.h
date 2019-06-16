@@ -57,7 +57,7 @@
 #define timing_stop(str, tp0, tp1)        \
   do {                                    \
     clock_gettime(CLOCK_MONOTONIC, &tp1); \
-    printf("%s took %ld ticks\n", str,    \
+    printf("%s took %ld ns\n", str,       \
       tp1.tv_nsec - tp0.tv_nsec);         \
   } while (0);
 
