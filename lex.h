@@ -52,6 +52,7 @@ struct token {
   enum token_type type;
   unsigned int slice_start;
   unsigned int slice_end;
+  unsigned int len;
   union {
     int integer;
     String str;
@@ -102,5 +103,7 @@ struct Unit {
 
 extern void lex_unit(Unit *);
 extern void destroy_unit(Unit *);
+
+extern void lex_table_info(void);
 
 #endif
