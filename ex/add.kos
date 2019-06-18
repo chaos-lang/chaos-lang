@@ -4,3 +4,6 @@ add : a b ->
 sq : n ->
   n * n
 
+foo : 't -> 't
+space : ' '
+newl : '\n'

@@ -63,7 +63,9 @@ enum tkn_state {
   TK_DOT,    /* . */
 
   /* Transitionary States */
-  TK_HASH,
+  TK_HASH,      /* #  */
+  TK_TICK,      /* '  */
+  TK_ESC,       /* \  */
 
   /* Literals */
   TK_INT, /* Integer Literal */
@@ -73,7 +75,12 @@ enum tkn_state {
 };
 
 enum tkn_kind {
-  TK_ARROW = TK_TRANSITION,
+  TK_ESCD = TK_TRANSITION,
+
+  TK_CHAR,
+  TK_GENERIC,
+
+  TK_ARROW,
   TK_IMPURE,
   TK_RANGE,
   TK_VARARGS,

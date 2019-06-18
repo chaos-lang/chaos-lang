@@ -118,6 +118,8 @@ static char tk_classify[256] = {
   ['.'] = TK_DOT,
 
   ['#'] = TK_HASH,
+  ['\''] = TK_TICK,
+  ['\\'] = TK_ESC,
 
   ['0' ... '9'] = TK_INT,
 };
@@ -148,6 +150,7 @@ static char tk_transition[TK_LENGTH][TK_TRANSITION] = {
   [TK_NONE][TK_DOT]    = TK_DOT,
 
   [TK_NONE][TK_HASH] = TK_HASH,
+  [TK_NONE][TK_TICK] = TK_TICK,
 
   [TK_NONE][TK_INT] = TK_INT,
 
@@ -179,6 +182,18 @@ static char tk_transition[TK_LENGTH][TK_TRANSITION] = {
   [TK_DOT][TK_DOT]       = TK_RANGE,
   [TK_RANGE][TK_DOT]     = TK_VARARGS,
   [TK_RANGE][TK_LANGLE]  = TK_RANGE_LT,
+
+  /* Char vs Generic Handling */
+  [TK_TICK][TK_ESC] = TK_ESCD,
+
+  [TK_ESCD][TK_NONE ... TK_RCURLY] = TK_GENERIC,
+  [TK_ESCD][TK_EQUALS ... TK_INT] = TK_GENERIC,
+  
+  [TK_TICK][TK_NONE ... TK_RCURLY] = TK_GENERIC,
+  [TK_TICK][TK_EQUALS ... TK_HASH] = TK_GENERIC,
+  [TK_TICK][TK_INT] = TK_GENERIC,
+
+  [TK_GENERIC][TK_TICK] = TK_CHAR,
 
   /* Indentation */
   [TK_NEWL][TK_NONE] = TK_NEWL,

@@ -43,8 +43,14 @@ char *tk_debug[TK_LENGTH] = {
   [TK_DOT] = "tk_dot",
   
   [TK_HASH] = "tk_hash",
-  
+  [TK_TICK] = "tk_tick",
+  [TK_ESC] = "tk_esc",
+  [TK_ESCD] = "tk_escd",
+
   [TK_INT] = "tk_int",
+
+  [TK_CHAR] = "tk_char",
+  [TK_GENERIC] = "tk_generic",
 
   [TK_ARROW] = "tk_arrow",
   [TK_IMPURE] = "tk_impure",
