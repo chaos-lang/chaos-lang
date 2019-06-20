@@ -1,0 +1,30 @@
+Chaos Language Grammar Specifications
+
+Basic lexemes
+
+<letter> ::= "a" .. "z" | "A" .. "Z"
+<digit> ::= "0" .. "9"
+<identifier> ::= ( "_" | <letter> ) { ( "_" | <letter> | <digit> ) }
+<number> ::= <digit> | <number> <digit>
+<generic> ::= "'" <identifier>
+
+Operators
+
+<equals> ::= "="
+<colon> ::= ":"
+<rarrow> ::= "->"
+<impure> ::= "=>"
+<ellipsis> ::= "..."
+other operators too fancy
+
+Grammar (yes, really)
+
+<func-type> ::= <identifier> | <generic>
+
+<function-decl> ::=   // type decl
+  <identifier> <colon> <identifier> { <identifier> } <func-type> <rarrow>
+  { <identifier> { <identifier> } <func-type> <rarrow> } <func-type> <newline>
+  <compound-stmt>
+
+<compound-stmt> ::= { <stmt> }
+
