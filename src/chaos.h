@@ -66,7 +66,8 @@ enum tkn_state {
   TK_HASH,      /* #  */
   TK_TICK,      /* '  */
   TK_ESC,       /* \  */
-
+  TK_QUOT,      /* "  */
+  
   /* Literals */
   TK_INT, /* Integer Literal */
 
@@ -75,9 +76,17 @@ enum tkn_state {
 };
 
 enum tkn_kind {
-  TK_ESCD = TK_TRANSITION,
+  TK_CHAR_ESCD = TK_TRANSITION,
+  TK_STRING_ESCD,
+  TK_QUOT_QUOT,
+  TK_STRING_RUN,
+  TK_MULTISTRING_RUN,
+  TK_MULTISTRING_QUOT,
+  TK_MULTISTRING_QUOT_QUOT,
 
   TK_CHAR,
+  TK_STRING,
+  TK_MULTISTRING,
   TK_GENERIC,
 
   TK_ARROW,

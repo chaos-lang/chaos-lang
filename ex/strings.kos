@@ -1,0 +1,7 @@
+greeting : "hello"
+
+foo :
+  """
+  -- help --
+    lorem ipsum
+  """
