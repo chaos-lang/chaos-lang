@@ -1,0 +1,37 @@
+# An example of a matrix multiplication algorithm written in Chaos
+
+typedef Matrix = {
+  rows : Unsigned Int,
+  cols : Unsigned Int,
+  data : Double**
+}
+
+([]) : Matrix -> Int -> Double*
+  m -> i -> (data m)[i]
+
+# -- Proposal --
+# Form all declarations with ':' for consistency, so that definition of `*`
+# becomes:
+#  (*) : Matrix -> Matrix -> Matrix
+#    a -> b ->
+#      i, j, k : Int
+#      res : Matrix
+#      for i in [0 .. rows a]
+#        for j in [0 .. cols b]
+#          for k in [0 .. cols a]
+#            res[i][j] += a[i][k] * b[k][j]
+
+(*) : a b Matrix -> Matrix
+  i, j, k Int
+  res Matrix
+  for i in [0 .. rows a]
+    for j in [0 .. cols b]
+      for k in [0 .. cols a]
+        res[i][j] += a[i][k] * b[k][j]
+
+# Alternative
+
+(*) : a b Matrix -> Matrix
+  i, j, k : Int
+  res : Matrix
+  [sum [a[i][k] * b[k][j] forall k < cols a] forall j < cols b forall i < rows a]
