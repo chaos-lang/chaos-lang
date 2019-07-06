@@ -1,13 +1,13 @@
 /* main.c
    authors: Simon Lovell Bart      (microchips-n-dip)
             David Robinson Garland (davidgarland)
-   description: The main program for the Chaos compiler.
+   description: The main program for the Cheshire compiler.
    date: 2019-05-31
    */
 
 #define _POSIX_C_SOURCE 200809L
 
-#include <chaos.h>
+#include <cheshire.h>
 #include <time.h>
 
 struct timespec

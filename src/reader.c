@@ -1,13 +1,13 @@
 /* reader.c
    authors: Simon Lovell Bart       (microchips-n-dip)
             David Robinson Garland  (davidgarland)
-   description: The file reader for the Chaos compiler.
+   description: The file reader for the Cheshire compiler.
    date: 2019-05-31
    */
 
 /* Dependencies */
 
-#include <chaos.h>
+#include <cheshire.h>
 
 /* Main Reader */
 

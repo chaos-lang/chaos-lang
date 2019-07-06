@@ -1,12 +1,12 @@
-/* chaos.h
+/* cheshire.h
    authors: Simon Lovell Bart      (microchips-n-dip)
             David Robinson Garland (davidgarland)
-   description: The main header for the Chaos compiler.
+   description: The main header for the Cheshire compiler.
    date: 2019-05-31
    */
 
-#ifndef CHAOS_H
-#define CHAOS_H
+#ifndef CHESHIRE_H
+#define CHESHIRE_H
 
 /* Dependencies */
 
@@ -19,7 +19,7 @@
 
 /* Config */
 
-#define CHAOS_TKN_RUN_LEN 256 /* The static length of a token run. */
+#define CHESHIRE_TKN_RUN_LEN 256 /* The static length of a token run. */
 
 /* General Types */
 
@@ -117,7 +117,7 @@ struct tkn {
 };
 
 struct tkn_run {
-  struct tkn tkns[CHAOS_TKN_RUN_LEN]; /* The set of tokens in the run. */
+  struct tkn tkns[CHESHIRE_TKN_RUN_LEN]; /* The set of tokens in the run. */
   size_t len;                         /* The length into the token run. */
   struct tkn_run *next;               /* The pointer to the next run.  */
 };
@@ -177,4 +177,4 @@ void tkn_run_free(struct tkn_run *tkn_run);
 void unit_lex(struct unit *unit);
 void unit_lex_print(struct unit *unit);
 
-#endif /* CHAOS_H */
+#endif /* CHESHIRE_H */

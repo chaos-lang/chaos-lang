@@ -7,7 +7,7 @@
 
 /* Dependencies */
 
-#include <chaos.h>
+#include <cheshire.h>
 #include <time.h>
 
 /* Globals */
@@ -22,9 +22,9 @@ static inline struct tkn_run *
 tkn_run_push_raw(struct unit *restrict unit, struct tkn_run *restrict tkn_run,
 struct tkn tkn) {
   assert(tkn_run != NULL);
-  assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
+  assert(tkn_run->len <= CHESHIRE_TKN_RUN_LEN);
 
-  if (unlikely(tkn_run->len == CHAOS_TKN_RUN_LEN)) {
+  if (unlikely(tkn_run->len == CHESHIRE_TKN_RUN_LEN)) {
     tkn_run->next = XCNEW(struct tkn_run);
     tkn_run = tkn_run->next;
   }
@@ -38,7 +38,7 @@ static inline struct tkn_run *
 tkn_run_push(struct unit *restrict unit, struct tkn_run *restrict tkn_run,
 struct tkn tkn) {
   assert(tkn_run != NULL);
-  assert(tkn_run->len <= CHAOS_TKN_RUN_LEN);
+  assert(tkn_run->len <= CHESHIRE_TKN_RUN_LEN);
 
   push_state.cmt_depth += (tkn.kind == TK_LCMT) ? 1 
                         : (tkn.kind == TK_RCMT) ? -1
