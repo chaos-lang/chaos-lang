@@ -77,7 +77,12 @@ lex_unit(Unit *unit) {
       result->len = (eq_class == EQCLASS_NEWLINE) ? 0 : result->len;
       unit->cur += stateful_char_increments[state];
     } while (state < LS_NONTERMINALS_END);
-    result->type = state - LS_NONTERMINALS_END;
+    result->type = state - LS_NONTERMINALS_END + 1;
+#if 0
+    if (result->type == TOKEN_ID) {
+      /* We need to check for reserved words. */
+    }
+#endif
   }
 _exit:
   /* We're done, do nothing. */
