@@ -35,7 +35,7 @@ static struct qa_chunk *cur_chunk;
 
 void
 quick_alloc_init(void) {
-  new_qa_chunk(&cur_chunk);
+  new_qa_chunk(&cur_chunk, 0);
 }
 
 /* Allocate from a quick alloc chunk. For very quick, small, easy
@@ -43,8 +43,8 @@ quick_alloc_init(void) {
 
 void *
 quick_alloc(unsigned long size) {
-  if (cur_chunk->data + cur_chunk->used + size >= QA_CHUNK_ALLOC_SIZE)
-    new_qa_chunk(&cur_chunk);
+  if (cur_chunk->used + size >= QA_CHUNK_ALLOC_BODY)
+    new_qa_chunk(&cur_chunk, size);
   void *p = (void *) (cur_chunk->data + cur_chunk->used);
   cur_chunk->used += size;
   return p;
