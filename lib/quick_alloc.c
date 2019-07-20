@@ -23,6 +23,7 @@ new_qa_chunk(struct qa_chunk **chunk, unsigned long size) {
     new_chunk = malloc(QA_CHUNK_ALLOC_SIZE);
   new_chunk->prev = 0;
   new_chunk->next = 0;
+  new_chunk->used = 0;
   if (*chunk) {
     (*chunk)->next = new_chunk;
     new_chunk->prev = *chunk;
@@ -44,7 +45,9 @@ void *
 quick_alloc(unsigned long size) {
   if (cur_chunk->data + cur_chunk->used + size >= QA_CHUNK_ALLOC_SIZE)
     new_qa_chunk(&cur_chunk);
-  return (void *) (cur_chunk->data + cur_chunk->used);
+  void *p = (void *) (cur_chunk->data + cur_chunk->used);
+  cur_chunk->used += size;
+  return p;
 }
 
 /* Free all quick alloc chunks. REQUIRES REINITIALIZATION. */
