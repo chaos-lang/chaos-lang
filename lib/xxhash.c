@@ -151,7 +151,7 @@ endian_align_32(const void *input, size_t len, U32 seed,
       v3 = round32(v3, get32bits(p)); p += 4;
       v4 = round32(v4, get32bits(p)); p += 4;
     } while (p < limit);
-    h32 = rotl32(v1, 1) + rotl32(v2, 7) + rotl32(v4, 12) + rotl32(v4, 18);
+    h32 = rotl32(v1, 1) + rotl32(v2, 7) + rotl32(v3, 12) + rotl32(v4, 18);
   }
   else {
     h32 = seed + PRIME32_5;
