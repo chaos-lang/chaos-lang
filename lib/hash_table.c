@@ -17,7 +17,7 @@ destroy_table(struct table *table) {
   unsigned int index = 0;
 #define NODE (table->entries[index])
   while (index < table->nslots) {
-    if (NODE.str)
+    if (NODE.len > 0)
       XDELETEVEC(NODE.str);
     NODE.len = 0;
     index++;
@@ -62,13 +62,12 @@ lookup(struct table *table, const char *str, unsigned int len,
   }
   if (insert_mode == NO_INSERT)
     return 0;
-  insert(table, hash, str, len);
   /* Expand if load factor exceeds 0.75. */
   if (++table->nentries * 4 >= table->nslots * 3)
     expand(table);
 #undef NODE
 #undef DELTA
-  return nodes + real_index;
+  return insert(table, hash, str, len);
 }
 
 /* Insert a new node into the hash table. */
@@ -98,6 +97,7 @@ insert(struct table *table, unsigned int hash, const char *str,
   while (1) {
     if (NODE.len == 0) {
       NODE = insert;
+      real_index = index;
       goto _end;
     }
     if (DELTA(NODE, index) < DELTA(insert, index)) {
@@ -108,9 +108,9 @@ insert(struct table *table, unsigned int hash, const char *str,
     }
     index++;
   }
+  real_index = index;
   /* We need a second stage for the ripple in case we don't find an empty
      bucket to insert into. */
-  real_index = index;
   while (1) {
     /* If we encounter an empty bucket, insert and break. */
     if (NODE.len == 0) {
