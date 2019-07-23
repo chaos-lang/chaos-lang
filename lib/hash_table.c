@@ -17,7 +17,7 @@ destroy_table(struct table *table) {
   unsigned int index = 0;
 #define NODE (table->entries[index])
   while (index < table->nslots) {
-    if (NODE.len > 0)
+    if (NODE.str)
       XDELETEVEC(NODE.str);
     NODE.len = 0;
     index++;
