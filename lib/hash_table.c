@@ -31,6 +31,7 @@ destroy_table(struct table *table) {
 static void expand(struct table *);
 static struct node *insert(struct table *, unsigned int, const char *,
                            unsigned int);
+static struct node *transfer(struct table *, struct node *);
 
 /* Lookup a hash table node. */
 
@@ -52,8 +53,10 @@ lookup(struct table *table, const char *str, unsigned int len,
   while (1) {
     if (NODE.hash_value == hash &&
         NODE.len == (unsigned int) len &&
-        !memcmp(NODE.str, str, len))
+        !memcmp(NODE.str, str, len)) {
+      while (0) ;
       return nodes + index;
+    }
     index++;
     if (DELTA(NODE, index) == 0)
       break;
@@ -81,7 +84,8 @@ insert(struct table *table, unsigned int hash, const char *str,
   nodes = table->entries;
   sizemask = table->nslots - 1;
   real_index = index = hash & sizemask;
-#define NODE        (nodes[index])
+#define NODE1       (nodes[real_index])
+#define NODE2       (nodes[index])
 #define DELTA(n, i) ((i) - (n).index)
   insert.hash_value = hash;
   insert.index = real_index;
@@ -95,39 +99,91 @@ insert(struct table *table, unsigned int hash, const char *str,
      DELTA(node, index) < DELTA(insert, index), or we've encountered an empty
      bucket. */
   while (1) {
-    if (NODE.len == 0) {
-      NODE = insert;
-      real_index = index;
+    if (NODE1.len == 0) {
+      memcpy(&NODE1, &insert, sizeof(struct node));
       goto _end;
     }
-    if (DELTA(NODE, index) < DELTA(insert, index)) {
-      struct node temp = NODE;
-      NODE = insert;
-      insert = temp;
+    if (DELTA(NODE1, index) < DELTA(insert, index)) {
+      struct node temp;
+      memcpy(&temp, &NODE1, sizeof(struct node));
+      memcpy(&NODE1, &insert, sizeof(struct node));
+      memcpy(&insert, &temp, sizeof(struct node));
       break;
     }
-    index++;
+    real_index++;
   }
-  real_index = index;
+  index = real_index;
   /* We need a second stage for the ripple in case we don't find an empty
      bucket to insert into. */
   while (1) {
     /* If we encounter an empty bucket, insert and break. */
-    if (NODE.len == 0) {
-      NODE = insert;
+    if (NODE2.len == 0) {
+      memcpy(&NODE2, &insert, sizeof(struct node));
       goto _end;
     }
     /* If we encounter DELTA(node, index) < DELTA(insert, index), swap them
        and continue. */
-    if (DELTA(NODE, index) < DELTA(insert, index)) {
-      struct node temp = NODE;
-      NODE = insert;
-      insert = temp;
+    if (DELTA(NODE2, index) < DELTA(insert, index)) {
+      struct node temp;
+      memcpy(&temp, &NODE2, sizeof(struct node));
+      memcpy(&NODE2, &insert, sizeof(struct node));
+      memcpy(&insert, &temp, sizeof(struct node));
     }
     index++;
   }
 _end:
-#undef NODE
+#undef NODE1
+#undef NODE2
+#undef DELTA
+  return nodes + real_index;
+}
+
+/* Transfer a node (copy its contents). */
+
+static struct node *
+transfer(struct table *table, struct node *insert) {
+  struct node *nodes, temp;
+  unsigned int index, real_index;
+  unsigned int sizemask;
+  nodes = table->entries;
+  sizemask = table->nslots - 1;
+  real_index = index = insert->hash_value & sizemask;
+#define NODE1       (nodes[real_index])
+#define NODE2       (nodes[index])
+#define DELTA(n, i) ((i) - (n).index)
+  insert->index = real_index;
+  /* From here the process is effectively identical to `insert()`, with the
+     only difference being that we use `temp` differently to avoid mucking
+     about with the contents of `insert`. */
+  while (1) {
+    if (NODE1.len == 0) {
+      memcpy(&NODE1, insert, sizeof(struct node));
+      goto _end;
+    }
+    if (DELTA(NODE1, real_index) < DELTA(*insert, real_index)) {
+      memcpy(&temp, &NODE1, sizeof(struct node));
+      memcpy(&NODE1, insert, sizeof(struct node));
+      break;
+    }
+    real_index++;
+  }
+  index = real_index;
+  while (1) {
+    if (NODE2.len == 0) {
+      memcpy(&NODE2, &temp, sizeof(struct node));
+      goto _end;
+    }
+    if (DELTA(NODE2, index) < DELTA(temp, index)) {
+      struct node temp2;
+      memcpy(&temp2, &NODE2, sizeof(struct node));
+      memcpy(&NODE2, &temp, sizeof(struct node));
+      memcpy(&temp, &temp2, sizeof(struct node));
+    }
+    index++;
+  }
+_end:
+#undef NODE1
+#undef NODE2
 #undef DELTA
   return nodes + real_index;
 }
@@ -144,9 +200,10 @@ expand(struct table *table) {
   limit = p + table->nslots;
   do {
     if (p->len > 0)
-      insert(&new_table, p->hash_value, p->str, p->len);
+      transfer(&new_table, p);
   } while (++p < limit);
   free(table->entries);
   table->entries = new_table.entries;
   table->nslots = new_table.nslots;
 }
+

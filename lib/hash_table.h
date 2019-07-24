@@ -1,12 +1,14 @@
 #ifndef HASH_TABLE_H
 #define HASH_TABLE_H
 
+#define HT_DATA_BYTES 16
+
 struct node {
   unsigned int hash_value;
   unsigned int index;
   const char *str;
   unsigned int len;
-  unsigned int val;
+  char data[HT_DATA_BYTES];
 };
 
 struct table {
