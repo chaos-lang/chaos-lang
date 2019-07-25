@@ -10,6 +10,7 @@ static const char *
 token_name[TOKEN_END] = {
   [TOKEN_OTHER]     = "token_other",
   [TOKEN_NEWLINE]   = "token_newline",
+  [TOKEN_KEYWORD]   = "token_keyword",
   [TOKEN_NAME]      = "token_name",
   [TOKEN_NUMBER]    = "token_number",
   [TOKEN_EQUALS]    = "token_equals",
@@ -62,6 +63,7 @@ int main(int argc, const char **argv) {
     printf("Provide an input file\n");
     exit(1);
   }
+  keywords_init();
   /* Set up the unit. */
   Unit unit;
   unit_read(&unit, argv[1]);
@@ -83,8 +85,12 @@ int main(int argc, const char **argv) {
   unit.cur_token = unit.cur_run->tokens;
   while (unit.cur_token->type != TOKEN_EOF) {
     //printf("%d\n", unit.cur_token->type);
-    if (token_name[unit.cur_token->type])
-      printf("%s\n", token_name[unit.cur_token->type]);
+    if (token_name[unit.cur_token->type]) {
+      printf("%s -> (", token_name[unit.cur_token->type]);
+      for (int i = 0; i < unit.cur_token->len; i++)
+        printf("%c", unit.cur_token->str[i]);
+      printf(")\n");
+    }
     unit.cur_token++;
     if (unit.cur_token == unit.cur_run->limit) {
       unit.cur_run = next_tokenrun(unit.cur_run);

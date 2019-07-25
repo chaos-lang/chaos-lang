@@ -1,39 +1,38 @@
-type Matrix = {
-  data : Double **
-  rows : Unsigned Int
-  cols : Unsigned Int
-}
+Matrix = struct
+  data : Double [][]
+  rows : Uint
+  cols : Uint
 
 at : m : Matrix -> i j : Int -> Double Ref
   return (data m)[i][j]
 
 matadd : a b : Matrix -> Matrix
-  i j : Unsigned Int
+  i j : Uint
   r : Matrix
   for (i,j) from (0,0) to (rows a, cols a)
     at r i j = at a i j + at b i j
   return r
 
 matmul : a b : Matrix -> Matrix
-  i j k : Unsigned Int
+  i j k : Uint
   r : Matrix
   for (i,j,k) from (0,0,0) to (rows a, cols b, cols a)
     at r i j += at a i k * at b k j
   return r
 
 tanh : a : Matrix -> Matrix
-  i j : Unsigned Int
+  i j : Uint
   r : Matrix
   for (i,j) from (0,0) to (rows a, cols a)
     at r i j = tanh $ at a i j
 
-type NeuralNet = {
-  ws : Matrix *
-  layers : Unsigned Int
-}
+NeuralNet = struct
+  ws : Matrix []
+  layers : Uint
 
 nnfwd : nn : NeuralNet -> x : Matrix -> Matrix
   a = x
+  i : Uint
   for i from 0 to layers nn
     a = tanh $ matmul a (ws nn)[i]
   return a
@@ -41,7 +40,7 @@ nnfwd : nn : NeuralNet -> x : Matrix -> Matrix
 -- Cost uses sum over i (y[i] - yHat[i])^2
 
 nncost : nn : NeuralNet -> x y : Matrix -> Double
-  i j : Unsigned Int
+  i j : Uint
   yhat = nnfwd nn x
   cost = 0
   for (i,j) from (0,0) to (rows yhat, cols yhat)
@@ -50,8 +49,9 @@ nncost : nn : NeuralNet -> x y : Matrix -> Double
   return cost
 
 nntrain : nn : NeuralNet Ref -> x y : Matrix -> Matrix
-  cost_derivative : Matrix *
+  cost_derivative : Matrix []
   p wbase loss2 loss1 : Matrix
+  l i j : Uint
   for l from 0 to layers nn
     wbase = (ws nn)[l]
     for (i,j) from (0,0) to (rows wbase, cols wbase)

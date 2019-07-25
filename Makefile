@@ -4,14 +4,14 @@ all: lex_test qa_test xxhash_test ht_test
 
 # Lexer tests
 
-lex_test: lex_test.o lex2.o
-	gcc $(FLAGS) build/lex_test.o build/lex2.o -o lex_test
+lex_test: lex_test.o lex2.o hash_table.o xxhash.o
+	gcc $(FLAGS) build/lex_test.o build/lex2.o build/hash_table.o build/xxhash.o -o lex_test
 
 lex_test.o: build
-	gcc $(FLAGS) -c test/lex_test.c -o build/lex_test.o -iquote src/
+	gcc $(FLAGS) -c test/lex_test.c -o build/lex_test.o -iquote src/ -iquote lib/
 
 lex2.o: build
-	gcc $(FLAGS) -c src/lex2.c -o build/lex2.o
+	gcc $(FLAGS) -c src/lex2.c -o build/lex2.o -iquote lib/
 
 # Quick allocator tests
 

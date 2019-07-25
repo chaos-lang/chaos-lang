@@ -1,7 +1,4 @@
- abc+Defg-234
-    abc+Defg-234
-    abc+Defg-234
-    abc+Defg-234
-    abc+Defg-234
-    abc+Defg-234
-    abc+Defg-234
+Matrix = struct
+  data : Double [][]
+  rows : Uint
+  cols : Uint
