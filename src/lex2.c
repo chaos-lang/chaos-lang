@@ -11,6 +11,8 @@
 #include <string.h>
 
 #include "alias.h"
+#include "xxhash.h"
+#include "hash_table.h"
 #include "lex.h"
 
 /* Initialize a tokenrun. */
@@ -31,6 +33,43 @@ next_tokenrun(tokenrun *run) {
     _init_tokenrun(run->next);
   }
   return run->next;
+}
+
+/* Keyword/reserved word tables. */
+
+hash_func calc_hash = xxhash32;
+
+static struct table keywords[1];
+
+struct resword {
+  const char *key;
+  unsigned int len;
+  enum rid_code rid;
+};
+
+static const struct resword reswords[] = {
+  {"Int"   , 3, RID_INT   },
+  {"Uint"  , 4, RID_UINT  },
+  {"Float" , 5, RID_FLOAT },
+  {"Double", 6, RID_DOUBLE},
+  {"if"    , 2, RID_IF    },
+  {"while" , 5, RID_WHILE },
+  {"for"   , 3, RID_FOR   },
+};
+
+static const unsigned int num_reswords = 7;
+
+/* Initialize the keyword table. */
+
+void
+keywords_init(void) {
+  unsigned int i;
+  struct node *node;
+  create_table(keywords, 3);
+  for (i = 0; i < num_reswords; i++) {
+    node = lookup(keywords, reswords[i].key, reswords[i].len, INSERT);
+    HT_RID(node) = reswords[i].rid;
+  }
 }
 
 /* Include the lexer tables. */
@@ -74,15 +113,22 @@ lex_unit(Unit *unit) {
       result->len += stateful_slice_increments[state];
       /* In the case of increments, we need to reset whenever we've got a
          newline otherwise we'll count empty lines. */
-      result->len = (eq_class == EQCLASS_NEWLINE) ? 0 : result->len;
+      result->len = (state == LS_NEWLINE && eq_class == EQCLASS_NEWLINE) ?
+                    0 : result->len;
       unit->cur += stateful_char_increments[state];
     } while (state < LS_NONTERMINALS_END);
     result->type = state - LS_NONTERMINALS_END + 1;
-#if 0
-    if (result->type == TOKEN_ID) {
-      /* We need to check for reserved words. */
+    result->str = unit->cur - result->len;
+    /* Look up any identifiers in the keyword table to determine if they're a
+       reserved word. */
+    if (result->type == TOKEN_NAME) {
+      struct node *node = lookup(keywords, result->str, result->len,
+                                 NO_INSERT);
+      if (node) {
+        result->type = TOKEN_KEYWORD;
+        result->val.rid = HT_RID(node);
+      }
     }
-#endif
   }
 _exit:
   /* We're done, do nothing. */

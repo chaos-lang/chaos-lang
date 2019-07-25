@@ -19,7 +19,6 @@ enum token_type {
   TOKEN_OTHER,         /* An unknown character. */
   TOKEN_NEWLINE,
   TOKEN_NAME,          /* Name/identifier token. */
-  //TOKEN_KEYWORD,       /* Keyword/reserved word token. */
   TOKEN_NUMBER,        /* A number token. */
   TOKEN_EQUALS,
   TOKEN_COLON,
@@ -27,6 +26,7 @@ enum token_type {
   TOKEN_IMPURE,
   TOKEN_ELLIPSIS,
   TOKEN_OPERATOR,
+  TOKEN_KEYWORD,       /* Keyword/reserved word token. */
   //TOKEN_STRING,        /* A string literal token. */
   //TOKEN_CHAR,
   //TOKEN_OPEN_PAREN,
@@ -50,17 +50,32 @@ enum token_type {
   TOKEN_END
 };
 
+enum rid_code {
+  RID_INT,
+  RID_UINT,
+  RID_FLOAT,
+  RID_DOUBLE,
+  RID_IF,
+  RID_WHILE,
+  RID_FOR
+};
+
+#define HT_RID(n) (*(enum rid_code *) ((n)->data))
+
+extern void keywords_init(void);
+
 typedef struct token token;
 
 struct token {
   enum token_type type;
   unsigned int slice_start;
   unsigned int slice_end;
+  const char *str;
   unsigned int len;
   union {
     int integer;
     String str;
-    //enum rid_code rid;
+    enum rid_code rid;
   } val;
 };
 
