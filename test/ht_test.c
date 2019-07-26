@@ -18,23 +18,13 @@ int main(void) {
   struct table table;
   struct node *node;
   create_table(&table, 1);
-  node = lookup(&table, "int", 3, INSERT);
-  HT_RID(node) = RID_INT;
-  node = lookup(&table, "double", 6, INSERT);
-  HT_RID(node) = RID_DOUBLE;
-  node = lookup(&table, "void", 4, INSERT);
-  HT_RID(node) = RID_VOID;
-  int i;
-  for (i = 0; i < 2; i++) {
-    node = lookup(&table, "int", 3, NO_INSERT);
-    printf("%s => %d\n", node->str, HT_RID(node));
-    node = lookup(&table, "double", 6, NO_INSERT);
-    printf("%s => %d\n", node->str, HT_RID(node));
-    node = lookup(&table, "void", 4, NO_INSERT);
-    printf("%s => %d\n", node->str, HT_RID(node));
+  char str[5];
+  unsigned int i;
+  for (i = 0; i < 2000; i++) {
+    printf("%d ", i);
+    snprintf(str, 5, "%04d", i);
+    lookup(&table, str, 4, INSERT);
   }
-  node = lookup(&table, "float", 5, INSERT);
-  HT_RID(node) = RID_FLOAT;
-  printf("%s => %d\n", node->str, HT_RID(node));
+  printf("\n");
   destroy_table(&table);
 }

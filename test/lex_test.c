@@ -8,18 +8,20 @@
 
 static const char *
 token_name[TOKEN_END] = {
-  [TOKEN_OTHER]     = "token_other",
-  [TOKEN_NEWLINE]   = "token_newline",
-  [TOKEN_KEYWORD]   = "token_keyword",
-  [TOKEN_NAME]      = "token_name",
-  [TOKEN_NUMBER]    = "token_number",
-  [TOKEN_EQUALS]    = "token_equals",
-  [TOKEN_COLON]     = "token_colon",
-  [TOKEN_RARROW]    = "token_rarrow",
-  [TOKEN_IMPURE]    = "token_impure",
-  [TOKEN_ELLIPSIS]  = "token_ellipsis",
-  [TOKEN_OPERATOR]  = "token_operator",
-  [TOKEN_EOF]       = "token_eof"
+  [TOKEN_OTHER]       = "token_other",
+  [TOKEN_NEWLINE]     = "token_newline",
+  [TOKEN_KEYWORD]     = "token_keyword",
+  [TOKEN_NAME]        = "token_name",
+  [TOKEN_NUMBER]      = "token_number",
+  [TOKEN_EQUALS]      = "token_equals",
+  [TOKEN_COLON]       = "token_colon",
+  [TOKEN_OPEN_PAREN]  = "token_open_paren",
+  [TOKEN_CLOSE_PAREN] = "token_close_paren",
+  [TOKEN_RARROW]      = "token_rarrow",
+  [TOKEN_IMPURE]      = "token_impure",
+  [TOKEN_ELLIPSIS]    = "token_ellipsis",
+  [TOKEN_OPERATOR]    = "token_operator",
+  [TOKEN_EOF]         = "token_eof"
 };
 
 void 
