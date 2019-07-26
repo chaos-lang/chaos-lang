@@ -37,6 +37,9 @@ next_tokenrun(tokenrun *run) {
 
 /* Keyword/reserved word tables. */
 
+#define NODE_TYPE_RID 0x1
+#define NODE_TYPE_ID  0x2
+
 hash_func calc_hash = xxhash32;
 
 static struct table keywords[1];
@@ -68,6 +71,7 @@ keywords_init(void) {
   create_table(keywords, 3);
   for (i = 0; i < num_reswords; i++) {
     node = lookup(keywords, reswords[i].key, reswords[i].len, INSERT);
+    node->type = NODE_TYPE_RID;
     HT_RID(node) = reswords[i].rid;
   }
 }
@@ -123,8 +127,8 @@ lex_unit(Unit *unit) {
        reserved word. */
     if (result->type == TOKEN_NAME) {
       struct node *node = lookup(keywords, result->str, result->len,
-                                 NO_INSERT);
-      if (node) {
+                                 INSERT);
+      if (node->type == NODE_TYPE_RID) {
         result->type = TOKEN_KEYWORD;
         result->val.rid = HT_RID(node);
       }
