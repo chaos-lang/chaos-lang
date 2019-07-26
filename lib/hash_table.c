@@ -28,10 +28,10 @@ destroy_table(struct table *table) {
 #undef NODE
 }
 
-static void expand(struct table *);
-static struct node *insert(struct table *, unsigned int, const char *,
+static inline void expand(struct table *);
+static inline struct node *insert(struct table *, unsigned int, const char *,
                            unsigned int);
-static struct node *transfer(struct table *, struct node *);
+static inline struct node *transfer(struct table *, struct node *);
 
 /* Lookup a hash table node. */
 
@@ -75,10 +75,10 @@ lookup(struct table *table, const char *str, unsigned int len,
 
 /* Insert a new node into the hash table. */
 
-static struct node *
+static inline struct node *
 insert(struct table *table, unsigned int hash, const char *str,
        unsigned int len) {
-  struct node *nodes, insert;
+  struct node *nodes, insert, temp;
   unsigned int index, real_index;
   unsigned int sizemask;
   nodes = table->entries;
@@ -104,13 +104,12 @@ insert(struct table *table, unsigned int hash, const char *str,
       goto _end;
     }
     if (DELTA(NODE1, index) < DELTA(insert, index)) {
-      struct node temp;
       memcpy(&temp, &NODE1, sizeof(struct node));
       memcpy(&NODE1, &insert, sizeof(struct node));
       memcpy(&insert, &temp, sizeof(struct node));
       break;
     }
-    real_index++;
+    real_index = (real_index + 1) & sizemask;
   }
   index = real_index;
   /* We need a second stage for the ripple in case we don't find an empty
@@ -124,12 +123,11 @@ insert(struct table *table, unsigned int hash, const char *str,
     /* If we encounter DELTA(node, index) < DELTA(insert, index), swap them
        and continue. */
     if (DELTA(NODE2, index) < DELTA(insert, index)) {
-      struct node temp;
       memcpy(&temp, &NODE2, sizeof(struct node));
       memcpy(&NODE2, &insert, sizeof(struct node));
       memcpy(&insert, &temp, sizeof(struct node));
     }
-    index++;
+    index = (index + 1) & sizemask;
   }
 _end:
 #undef NODE1
@@ -140,9 +138,9 @@ _end:
 
 /* Transfer a node (copy its contents). */
 
-static struct node *
+static inline struct node *
 transfer(struct table *table, struct node *insert) {
-  struct node *nodes, temp;
+  struct node *nodes, temp, temp2;
   unsigned int index, real_index;
   unsigned int sizemask;
   nodes = table->entries;
@@ -165,7 +163,7 @@ transfer(struct table *table, struct node *insert) {
       memcpy(&NODE1, insert, sizeof(struct node));
       break;
     }
-    real_index++;
+    real_index = (real_index + 1) & sizemask;
   }
   index = real_index;
   while (1) {
@@ -174,12 +172,11 @@ transfer(struct table *table, struct node *insert) {
       goto _end;
     }
     if (DELTA(NODE2, index) < DELTA(temp, index)) {
-      struct node temp2;
       memcpy(&temp2, &NODE2, sizeof(struct node));
       memcpy(&NODE2, &temp, sizeof(struct node));
       memcpy(&temp, &temp2, sizeof(struct node));
     }
-    index++;
+    index = (index + 1) & sizemask;
   }
 _end:
 #undef NODE1
@@ -190,7 +187,7 @@ _end:
 
 /* Expand the hash table when necessary. */
 
-static void
+static inline void
 expand(struct table *table) {
   struct table new_table;
   struct node *p, *limit;
