@@ -22,6 +22,8 @@ enum token_type {
   TOKEN_NUMBER,        /* A number token. */
   TOKEN_EQUALS,
   TOKEN_COLON,
+  TOKEN_OPEN_PAREN,
+  TOKEN_CLOSE_PAREN,
   TOKEN_RARROW,
   TOKEN_IMPURE,
   TOKEN_ELLIPSIS,
