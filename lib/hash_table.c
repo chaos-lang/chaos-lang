@@ -57,7 +57,7 @@ lookup(struct table *table, const char *str, unsigned int len,
       while (0) ;
       return nodes + index;
     }
-    index++;
+    index = (index + 1) & sizemask;
     if (DELTA(NODE, index) == 0)
       break;
     if (NODE.len == 0)
