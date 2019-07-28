@@ -1,6 +1,17 @@
 FLAGS = -g -O2 -march=native -static
 
-all: lex_test qa_test xxhash_test ht_test
+all: parse_test lex_test qa_test xxhash_test ht_test
+
+# Parser tests
+
+parse_test: parse_test.o parse.o lex2.o hash_table.o xxhash.o quick_alloc.o
+	gcc $(FLAGS) build/parse_test.o build/parse.o build/lex2.o build/hash_table.o build/xxhash.o build/quick_alloc.o -o parse_test
+
+parse_test.o: build
+	gcc $(FLAGS) -c test/parse_test.c -o build/parse_test.o -iquote src/ -iquote lib/
+
+parse.o: build
+	gcc $(FLAGS) -c src/parse.c -o build/parse.o -iquote lib/
 
 # Lexer tests
 

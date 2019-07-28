@@ -90,7 +90,7 @@ void lex_table_info(void) {
 /* Lex an entire unit. */
 
 void
-lex_unit(Unit *unit) {
+lex_unit(struct unit *unit) {
   enum lexer_state state;
   token *result;
   char c;
@@ -142,7 +142,7 @@ _exit:
 /* Destroy a file reader unit. */
 
 void
-destroy_unit(Unit *unit) {
+destroy_unit(struct unit *unit) {
   /* Just remove the tokenruns for now. */
   tokenrun *run;
   while (unit->cur_run->prev) {

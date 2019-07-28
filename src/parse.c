@@ -3,7 +3,7 @@
 #include "quick_alloc.h"
 
 #include "lex.h"
-#include "parse_test.h" /* Remove after testing. */
+#include "parse.h" /* Remove after testing. */
 #include "ast.h"
 
 #if 0
@@ -22,13 +22,15 @@ struct parser {
 
 void
 parse_init(struct parser *parser, struct unit *unit) {
+  quick_alloc_init();
+  parser->num_tokens = 0;
   parser->cur_run = &unit->base_run;
   parser->tokens = parser->cur_run->tokens;
 }
 
 static token *
 peek_token(struct parser *parser) {
-  return parser->tokens[0];
+  return &parser->tokens[0];
 }
 
 static void
@@ -90,16 +92,16 @@ parse_primary_type(struct parser *parser) {
   else if (next_token_is(parser, TOKEN_KEYWORD)) {
     result = NEW_NODE(struct node_type);
     result->kind = TYPE_PRIMITIVE;
-    result->val.rid = peek_token(parser)->rid;
+    result->val.rid = peek_token(parser)->val.rid;
     consume_token(parser);
   }
-  else if (next_token_is(parser, TOKEN_ID)) {
+  else if (next_token_is(parser, TOKEN_NAME)) {
     result = NEW_NODE(struct node_type);
     result->kind = TYPE_TYPEDEF;
     /* TODO: Add user-defined primary type parsing. */
   }
   else
-    print("error: expected primary type\n");
+    printf("error: expected primary type\n");
   return result;
 }
 
@@ -132,6 +134,7 @@ parse_type(struct parser *parser) {
       prev->next = list.tail;
       list.tail->prev = prev;
     }
+    result->val.types = list;
   }
   return result;
 }

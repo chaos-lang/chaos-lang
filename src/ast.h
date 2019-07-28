@@ -29,4 +29,7 @@ struct node_type {
   } val;
 };
 
+#define COMPOUND_TYPE_HEAD(t) ((t)->val.types.head)
+#define PRIMITIVE_TYPE_RID(t) ((t)->val.rid)
+
 #endif

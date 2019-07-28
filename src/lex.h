@@ -102,9 +102,7 @@ extern tokenrun *next_tokenrun(tokenrun *);
 
 /* A lexer unit; handles a single file. */
 
-typedef struct Unit Unit;
-
-struct Unit {
+struct unit {
   /* Current position in the buffer. */
   const char *cur;
   /* The buffer itself. */
@@ -113,7 +111,7 @@ struct Unit {
   const char *rlimit;
   /* Flag indicating whether to replace the next newline with an EOL. */
   unsigned int need_eol : 1;
-  Unit *prev;
+  struct unit *prev;
   /* File details (filename). */
   char *filename;
   /* Tokenruns (put in the outer reader struct?) */
@@ -122,8 +120,8 @@ struct Unit {
   token *cur_token;
 };
 
-extern void lex_unit(Unit *);
-extern void destroy_unit(Unit *);
+extern void lex_unit(struct unit *);
+extern void destroy_unit(struct unit *);
 
 extern void lex_table_info(void);
 
