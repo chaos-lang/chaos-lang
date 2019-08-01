@@ -28,7 +28,7 @@ token_name[TOKEN_END] = {
 };
 
 void 
-unit_read(struct unit *unit, char *filename) {
+unit_read(struct unit *unit, const char *filename) {
   /* Save the filename. */ 
   if (unit->filename == NULL)
     unit->filename = XNEWVEC(char, strlen(filename));
@@ -47,7 +47,7 @@ unit_read(struct unit *unit, char *filename) {
     unit->buf = XRESIZEVEC(char, unit->buf, len + 2);
   unit->rlimit = unit->buf + len + 2;
   /* Read the file into the buffer. */
-  fread((void *) unit->buf, len, 1, fp);
+  unsigned int count = fread((void *) unit->buf, len, 1, fp);
   fclose(fp);
   ((char *)unit->buf)[len + 1] = '\0';
   ((char *)unit->buf)[len + 2] = '\0';
@@ -107,8 +107,9 @@ int main(int argc, const char **argv) {
   /* Parse the tokens. */
   struct parser parser;
   parse_init(&parser, &unit);
-  struct node_type *type = parse_type(&parser);
-  print_type(type);
+  struct node_declaration *decl;
+  decl = parse_declaration(&parser);
+  print_type(decl->type);
   printf("\n");
   qa_free_all();
 }
