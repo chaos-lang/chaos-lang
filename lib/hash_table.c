@@ -95,6 +95,8 @@ insert(struct table *table, unsigned int hash, const char *str,
   chars[len] = '\0';
   insert.str = (const char *) chars;
   insert.len = len;
+  /* Zero out the data section. */
+  memset(insert.data, 0, HT_DATA_BYTES);
   /* Insert mechanism stopping conditions: we've encountered a node with
      DELTA(node, index) < DELTA(insert, index), or we've encountered an empty
      bucket. */
