@@ -62,9 +62,16 @@ enum rid_code {
   RID_FOR
 };
 
-#define HT_RID(n) (*(enum rid_code *) ((n)->data))
+#define HT_RID(n)   (*(enum rid_code *) ((n)->data))
+#define HT_IDENT(n) ((struct node_identifier *) ((n)->data))
 
 extern void keywords_init(void);
+
+enum id_kind {
+  ID_NONE,
+  ID_ID,
+  ID_TYPENAME
+};
 
 typedef struct token token;
 
@@ -74,10 +81,12 @@ struct token {
   unsigned int slice_end;
   const char *str;
   unsigned int len;
+  enum id_kind id_kind;
   union {
     int integer;
     String str;
     enum rid_code rid;
+    struct node_identifier *ident;
   } val;
 };
 

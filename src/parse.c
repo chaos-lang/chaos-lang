@@ -28,9 +28,22 @@ parse_init(struct parser *parser, struct unit *unit) {
   parser->tokens = parser->cur_run->tokens;
 }
 
+/* We need to do name classification here since we can't do it during
+   lexing. */
+
 static token *
 peek_token(struct parser *parser) {
-  return &parser->tokens[0];
+  struct token *result = &parser->tokens[0];
+  if (result->type == TOKEN_NAME) {
+    struct node_identifier *id = result->val.ident;
+    if (id->bind) {
+      if (id->bind->decl->kind == DECL_TYPENAME)
+        result->id_kind = ID_TYPENAME;
+      else
+        result->id_kind = ID_ID;
+    }
+  }
+  return result;
 }
 
 static void
@@ -50,6 +63,12 @@ next_token_is(struct parser *parser, enum token_type type) {
 static int
 next_token_is_not(struct parser *parser, enum token_type type) {
   return !next_token_is(parser, type);
+}
+
+static int
+next_token_is_identifier(struct parser *parser) {
+  return next_token_is(parser, TOKEN_NAME) &&
+         (peek_token(parser)->id_kind == ID_ID);
 }
 
 static void
@@ -139,12 +158,31 @@ parse_type(struct parser *parser) {
   return result;
 }
 
-#if 0
+/* Parse a parameter declaration.
+   <parameter-decl> -> <identifier-list> ":" <primary-type>
+   <parameter-decl> -> <primary-type>
+   */
 
-struct node_declaration {
-  struct node_type *type;
-  struct node_identifier_list *identifiers;
-};
+struct node_declaration *
+parse_parameter_decl(struct parser *parser) {
+  struct node_declaration *result;
+  int seen_names = 0;
+  result = NEW_NODE(struct node_declaration);
+  /* Bind the identifier list. */
+  /* TODO: We'll need to bind any names in scope. */
+  while (next_token_is(parser, TOKEN_NAME)) {
+    bind(peek_token(parser)->val.ident, result);
+    consume_token(parser);
+    seen_names = 1;
+  }
+  /* We should only expect a colon if we've seen names; otherwise we can go
+     directly to parsing the type. */
+  if (seen_names)
+    expect_token(parser, TOKEN_COLON);
+  /* Now we parse the type. */
+  result->type = parse_primary_type(parser);
+  return result;
+}
 
 /* Parse a declaration.
    <declaration> -> <identifier-list> : <primary-type>
@@ -152,13 +190,45 @@ struct node_declaration {
    <func-type> -> <parameter-decl-list> "->" <primary-type>
    <parameter-decl-list> -> <parameter-decl-list> "->" <parameter-decl>
    <parameter-decl-list> -> <parameter-decl>
-   <parameter-decl> -> <identifier-list> ":" <primary-type>
-   <parameter-decl> -> <primary-type>
    */
 
 struct node_declaration *
 parse_declaration(struct parser *parser) {
-  
+  struct node_declaration *result = NEW_NODE(struct node_declaration);
+  /* Bind identifiers. */
+  while (next_token_is(parser, TOKEN_NAME)) {
+    bind(peek_token(parser)->val.ident, result);
+    consume_token(parser);
+  }
+  expect_token(parser, TOKEN_COLON);
+  /* Parse our first parameter, be prepared to promote the type to a list if
+     we encounter an RARROW. */
+  struct node_declaration *param = parse_parameter_decl(parser);
+  if (next_token_is(parser, TOKEN_RARROW)) {
+    /* Create a compound type, as in parse_type(), but with
+       parse_parameter_decl() called. */
+    result->type = NEW_NODE(struct node_type);
+    result->type->kind = TYPE_COMPOUND;
+    struct type_list list;
+    struct type_list_node *prev;
+    list.head = NEW_NODE(struct type_list_node);
+    list.head->type = param->type;
+    list.tail = list.head;
+    while (next_token_is(parser, TOKEN_RARROW)) {
+      consume_token(parser);
+      prev = list.tail;
+      list.tail = NEW_NODE(struct type_list_node);
+      param = parse_parameter_decl(parser);
+      list.tail->type = param->type;
+      prev->next = list.tail;
+      list.tail->prev = prev;
+    }
+    result->type->val.types = list;
+  }
+  /* There was only one parameter and it's the type. */
+  else
+    result->type = param->type;
+  return result;
 }
 
-#endif
+

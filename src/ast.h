@@ -1,6 +1,12 @@
 #ifndef AST_H
 #define AST_H
 
+/* An identifier. */
+
+struct node_identifier {
+  struct binding *bind;
+};
+
 /* Kind of type being parsed. */
 
 enum type_kind {
@@ -31,5 +37,34 @@ struct node_type {
 
 #define COMPOUND_TYPE_HEAD(t) ((t)->val.types.head)
 #define PRIMITIVE_TYPE_RID(t) ((t)->val.rid)
+
+/* Declarations. */
+
+enum declaration_kind {
+  DECL_NONE,
+  DECL_TYPENAME,
+  DECL_VAR
+};
+
+struct node_declaration {
+  struct node_type *type;
+  enum declaration_kind kind;
+};
+
+/* Bindings from names to declarations. */
+
+struct binding {
+  struct node_identifier *name;
+  struct node_declaration *decl;
+  struct binding *prev;
+};
+
+#define SYMBOL_BINDING(n) ((n)->bind->decl)
+
+/* Scopes. */
+
+struct scope {
+  struct binding *bindings;
+};
 
 #endif

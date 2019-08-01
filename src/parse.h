@@ -15,4 +15,7 @@ extern void parse_init(struct parser *, struct unit *);
 extern struct node_type *parse_primary_type(struct parser *);
 extern struct node_type *parse_type(struct parser *);
 
+extern void bind(struct node_identifier *, struct node_declaration *);
+extern struct node_declaration *parse_declaration(struct parser *);
+
 #endif

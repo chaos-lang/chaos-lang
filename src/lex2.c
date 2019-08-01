@@ -14,6 +14,7 @@
 #include "xxhash.h"
 #include "hash_table.h"
 #include "lex.h"
+#include "ast.h"
 
 /* Initialize a tokenrun. */
 
@@ -37,8 +38,8 @@ next_tokenrun(tokenrun *run) {
 
 /* Keyword/reserved word tables. */
 
-#define NODE_TYPE_RID 0x1
-#define NODE_TYPE_ID  0x2
+#define NODE_KIND_ID  0x0
+#define NODE_KIND_RID 0x1
 
 hash_func calc_hash = xxhash32;
 
@@ -68,12 +69,26 @@ void
 keywords_init(void) {
   unsigned int i;
   struct node *node;
-  create_table(keywords, 3);
+  create_table(keywords, 8);
   for (i = 0; i < num_reswords; i++) {
     node = lookup(keywords, reswords[i].key, reswords[i].len, INSERT);
-    node->type = NODE_TYPE_RID;
+    node->kind = NODE_KIND_RID;
     HT_RID(node) = reswords[i].rid;
   }
+}
+
+/* Lookup and classify an identifier. */
+
+static inline void
+lookup_classify_name(struct token *token) {
+  struct node *node;
+  node = lookup(keywords, token->str, token->len, INSERT);
+  if (node->kind == NODE_KIND_RID) {
+    token->type = TOKEN_KEYWORD;
+    token->val.rid = HT_RID(node);
+  }
+  else
+    token->val.ident = HT_IDENT(node);
 }
 
 /* Include the lexer tables. */
@@ -125,14 +140,8 @@ lex_unit(struct unit *unit) {
     result->str = unit->cur - result->len;
     /* Look up any identifiers in the keyword table to determine if they're a
        reserved word. */
-    if (result->type == TOKEN_NAME) {
-      struct node *node = lookup(keywords, result->str, result->len,
-                                 INSERT);
-      if (node->type == NODE_TYPE_RID) {
-        result->type = TOKEN_KEYWORD;
-        result->val.rid = HT_RID(node);
-      }
-    }
+    if (result->type == TOKEN_NAME)
+      lookup_classify_name(result);
   }
 _exit:
   /* We're done, do nothing. */
